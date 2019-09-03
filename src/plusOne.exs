@@ -35,11 +35,14 @@ defmodule PlusOne do
   end
 
   #fang check function
-  def fang_chk(num, dvsr, p_pid) do #TODO: check why digit comparison is not working
+  def fang_chk(num, dvsr, p_pid) do
+    dvsr2=div(num, dvsr)
     {:ok, num_l}=digi_extract(num, [])
     {:ok, dvsr_l}=digi_extract(dvsr, [])
+    {:ok, dvsr2_l}=digi_extract(dvsr2, [])
 
-    if length(num_l--dvsr_l)==div(length(num_l), 2) do
+    dvsrs_l=dvsr_l++dvsr2_l
+    if num_l--dvsrs_l==[] and length(num_l)==length(dvsrs_l) do
       send(p_pid, "#{num}: #{dvsr}*#{trunc(num/dvsr)}")
     end
   end
@@ -61,9 +64,5 @@ defmodule PlusOne do
   end
 
 end
-
-#PlusOne.fang_chk(125460, 204, 1234)
-#{:ok, list}=PlusOne.digi_extract(125460, [])
-#for x<-list, do: IO.puts x
 
 PlusOne.main(100000..200000)
