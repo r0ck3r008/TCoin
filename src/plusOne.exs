@@ -35,24 +35,13 @@ defmodule PlusOne do
   end
 
   #fang check function
-  def fang_chk(num, dvsr, _p_pid) do #TODO: check why digit comparison is not working
+  def fang_chk(num, dvsr, p_pid) do #TODO: check why digit comparison is not working
+    {:ok, num_l}=digi_extract(num, [])
+    {:ok, dvsr_l}=digi_extract(dvsr, [])
 
-    #    IO.puts("Num: #{num}, dvsr: #{dvsr}")
-    {:ok, l1}=digi_extract(num, [])
-    {:ok, l2}=digi_extract(dvsr, [])
-
-    #    IO.puts "#{num}:#{l1} #{dvsr}: #{l2}"
-
-    eqlity=fn(i, j)-> i==j end
-    itr_num=fn(i)-> for j<-l1, eqlity.(i, j), do: i end
-    l3=for x<-l2, itr_num.(x), do: x
-
-    IO.puts("#{l2}, #{l3}")
-
-    #    if l2==l3 do
-    # IO.puts "#{num}: #{dvsr}*#{trunc(num/dvsr)}"
-      #      send(p_pid, "#{num}: #{dvsr}*#{trunc(num/dvsr)}")
-    #end
+    if length(num_l--dvsr_l)==div(length(num_l), 2) do
+      send(p_pid, "#{num}: #{dvsr}*#{trunc(num/dvsr)}")
+    end
   end
 
 
@@ -73,7 +62,8 @@ defmodule PlusOne do
 
 end
 
-#PlusOne.vamp_chk(125460, 1234)
-#PlusOne.digi_extract(125460, [])
+#PlusOne.fang_chk(125460, 204, 1234)
+#{:ok, list}=PlusOne.digi_extract(125460, [])
+#for x<-list, do: IO.puts x
 
 PlusOne.main(100000..200000)
