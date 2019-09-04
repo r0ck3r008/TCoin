@@ -29,14 +29,17 @@ defmodule PlusOne do
         r_start=pow(10, 1, trunc(n_num_dig/2)-1)
         r_end=pow(10, 1, trunc(n_num_dig/2))-1
 
-        valid_dvsr=fn(num, i)-> rem(num, i)==0 and i != num end
-        for x<-r_start..r_end, valid_dvsr.(num, x), do: spawn(fn-> fang_chk(num, x, p_pid)end)
+        valid_dvsr=fn(i)-> rem(num, i)==0 and i != num and i != 1 end
+        list=for x<-r_start..r_end, valid_dvsr.(x), do: x
+        list2=for x<-0..ceil((length(list)/2))-1, do: Enum.at(list,x)
+        for x<-list2, do: spawn(fn-> fang_chk(num, x, p_pid) end)
     end
   end
 
   #fang check function
+  def fang_chk(_num, nil, _p_pid), do: :discard
   def fang_chk(num, dvsr, p_pid) do
-    dvsr2=div(num, dvsr)
+    dvsr2=trunc(num/dvsr)
     {:ok, num_l}=digi_extract(num, [])
     {:ok, dvsr_l}=digi_extract(dvsr, [])
     {:ok, dvsr2_l}=digi_extract(dvsr2, [])
@@ -65,4 +68,5 @@ defmodule PlusOne do
 
 end
 
+#PlusOne.vamp_chk(1260, 100)
 PlusOne.main(100000..200000)
