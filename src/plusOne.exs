@@ -50,7 +50,6 @@ defmodule PlusOne do
     end
   end
 
-
   #math helpers
   def num_dig(0, count), do: count
   def num_dig(num, count) do
@@ -65,8 +64,6 @@ defmodule PlusOne do
     res2=List.insert_at(res, 0, rem(num, 10))
     digi_extract(trunc(num/10), res2)
   end
-
 end
 
-#PlusOne.vamp_chk(1260, 100)
 PlusOne.main(100000..200000)
