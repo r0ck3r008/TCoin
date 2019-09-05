@@ -2,24 +2,20 @@ defmodule PlusOne do
 
   #main function
   def main(range) do
-    p_pid=spawn(fn-> print_it() end)
-    spawn_loop(range, p_pid)
-  end
+    {:ok, a_pid}=Agent.start(fn-> %{} end)
+    spawn_loop(range, a_pid)
 
-  #stateless printer server
-  def print_it() do
-    receive do
-      msg->IO.puts(msg)
-    end
-    print_it()
+    #print O/P
+    op_map=Agent.get(a_pid, fn(state)-> state end)
+    Enum.each(op_map, fn({key, val})-> IO.puts "#{key}: #{Enum.join(val, " ")}" end)
   end
 
   #loop function to create new process for each new number and check for vamp qualities
-  def spawn_loop(range, p_pid), do: for i<-range, do: spawn(fn-> vamp_chk(i, p_pid) end)
+  def spawn_loop(range, a_pid), do: for i<-range, do: spawn(fn-> vamp_chk(i, a_pid) end)
 
   #vampire checker function
-  def vamp_chk(num, _p_pid) when rem(num, 100)==0, do: :discard
-  def vamp_chk(num, p_pid) do
+  def vamp_chk(num, _a_pid) when rem(num, 100)==0, do: :discard
+  def vamp_chk(num, a_pid) do
     n_num_dig=num_dig(num, 0)
 
     case rem(n_num_dig, 2) do
@@ -32,13 +28,13 @@ defmodule PlusOne do
         valid_dvsr=fn(i)-> rem(num, i)==0 and i != num and i != 1 end
         list=for x<-r_start..r_end, valid_dvsr.(x), do: x
         list=for x<-0..ceil((length(list)/2))-1, do: Enum.at(list,x)
-        for x<-list, do: spawn(fn-> fang_chk(num, x, p_pid) end)
+        for x<-list, do: spawn(fn-> fang_chk(num, x, a_pid) end)
     end
   end
 
   #fang check function
-  def fang_chk(_num, nil, _p_pid), do: :discard
-  def fang_chk(num, dvsr, p_pid) do
+  def fang_chk(_num, nil, _a_pid), do: :discard
+  def fang_chk(num, dvsr, a_pid) do
     dvsr2=trunc(num/dvsr)
     {:ok, num_l}=digi_extract(num, [])
     {:ok, dvsr_l}=digi_extract(dvsr, [])
@@ -46,7 +42,13 @@ defmodule PlusOne do
 
     dvsrs_l=dvsr_l++dvsr2_l
     if num_l--dvsrs_l==[] and length(num_l)==length(dvsrs_l) do
-      send(p_pid, "#{num}: #{dvsr}*#{dvsr2}")
+      Agent.update(a_pid, fn(state)->
+        if state[num]==nil do
+          Map.put(state, num, [dvsr, dvsr2])
+        else
+          Map.update(state, num, state[num], &(&1++[dvsr, dvsr2]))
+        end
+      end)
     end
   end
 
