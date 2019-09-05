@@ -46,7 +46,7 @@ defmodule PlusOne do
 
     dvsrs_l=dvsr_l++dvsr2_l
     if num_l--dvsrs_l==[] and length(num_l)==length(dvsrs_l) do
-      send(p_pid, "#{num}: #{dvsr}*#{trunc(num/dvsr)}")
+      send(p_pid, "#{num}: #{dvsr}*#{dvsr2}")
     end
   end
 
