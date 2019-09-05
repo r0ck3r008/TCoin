@@ -31,8 +31,8 @@ defmodule PlusOne do
 
         valid_dvsr=fn(i)-> rem(num, i)==0 and i != num and i != 1 end
         list=for x<-r_start..r_end, valid_dvsr.(x), do: x
-        list2=for x<-0..ceil((length(list)/2))-1, do: Enum.at(list,x)
-        for x<-list2, do: spawn(fn-> fang_chk(num, x, p_pid) end)
+        list=for x<-0..ceil((length(list)/2))-1, do: Enum.at(list,x)
+        for x<-list, do: spawn(fn-> fang_chk(num, x, p_pid) end)
     end
   end
 
