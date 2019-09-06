@@ -7,14 +7,13 @@ defmodule PlusOne do
 
     #print O/P
     op_map=Agent.get(a_pid, fn(state)-> state end)
-    Enum.each(op_map, fn({key, val})-> IO.puts "#{key}: #{Enum.join(val, " ")}" end)
+    Enum.each(op_map, fn({key, val})-> IO.puts "#{key} #{Enum.join(val, " ")}" end)
   end
 
   #loop function to create new process for each new number and check for vamp qualities
   def spawn_loop(range, a_pid), do: for i<-range, do: spawn(fn-> vamp_chk(i, a_pid) end)
 
   #vampire checker function
-  def vamp_chk(num, _a_pid) when rem(num, 100)==0, do: :discard #TODO 100 divisibility bug
   def vamp_chk(num, a_pid) do
     n_num_dig=num_dig(num, 0)
 
@@ -35,19 +34,23 @@ defmodule PlusOne do
   def fang_chk(_num, nil, _a_pid), do: :discard
   def fang_chk(num, dvsr, a_pid) do
     dvsr2=trunc(num/dvsr)
-    {:ok, num_l}=digi_extract(num, [])
-    {:ok, dvsr_l}=digi_extract(dvsr, [])
-    {:ok, dvsr2_l}=digi_extract(dvsr2, [])
+    flag = !(rem(dvsr, 10) == 0 and rem(dvsr2, 10) == 0)
 
-    dvsrs_l=dvsr_l++dvsr2_l
-    if num_l--dvsrs_l==[] and length(num_l)==length(dvsrs_l) do
-      Agent.update(a_pid, fn(state)->
-        if state[num]==nil do
-          Map.put(state, num, [dvsr, dvsr2])
-        else
-          Map.update(state, num, state[num], &(Enum.uniq(&1++[dvsr, dvsr2])))
-        end
-      end)
+    if flag do
+      {:ok, num_l}=digi_extract(num, [])
+      {:ok, dvsr_l}=digi_extract(dvsr, [])
+      {:ok, dvsr2_l}=digi_extract(dvsr2, [])
+
+      dvsrs_l=dvsr_l++dvsr2_l
+      if num_l--dvsrs_l==[] and length(num_l)==length(dvsrs_l) do
+        Agent.update(a_pid, fn(state)->
+          if state[num]==nil do
+            Map.put(state, num, [dvsr, dvsr2])
+          else
+            Map.update(state, num, state[num], &(Enum.uniq(&1++[dvsr, dvsr2])))
+          end
+        end)
+      end
     end
   end
 
