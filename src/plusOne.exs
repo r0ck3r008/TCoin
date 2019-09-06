@@ -14,7 +14,6 @@ defmodule PlusOne do
   def spawn_loop(range, a_pid), do: for i<-range, do: spawn(fn-> vamp_chk(i, a_pid) end)
 
   #vampire checker function
-  #def vamp_chk(num, _a_pid) when rem(num, 100)==0, do: :discard
   def vamp_chk(num, a_pid) do
     n_num_dig=num_dig(num, 0)
 
@@ -27,7 +26,6 @@ defmodule PlusOne do
 
         valid_dvsr=fn(i)-> rem(num, i)==0 and i != num and i != 1 end
         list=for x<-r_start..r_end, valid_dvsr.(x), do: x
-        list=for x<-0..ceil((length(list)/2))-1, do: Enum.at(list,x)
         for x<-list, do: spawn(fn-> fang_chk(num, x, a_pid) end)
     end
   end
@@ -37,7 +35,7 @@ defmodule PlusOne do
   def fang_chk(num, dvsr, a_pid) do
     dvsr2=trunc(num/dvsr)
     flag = !(rem(dvsr, 10) == 0 and rem(dvsr2, 10) == 0)
-    #checking if both fangs have trailing zeroes
+
     if flag do
       {:ok, num_l}=digi_extract(num, [])
       {:ok, dvsr_l}=digi_extract(dvsr, [])
@@ -49,13 +47,11 @@ defmodule PlusOne do
           if state[num]==nil do
             Map.put(state, num, [dvsr, dvsr2])
           else
-            Map.update(state, num, state[num], &(&1++[dvsr, dvsr2]))
+            Map.update(state, num, state[num], &(Enum.uniq(&1++[dvsr, dvsr2])))
           end
         end)
       end
-
     end
-
   end
 
   #math helpers
