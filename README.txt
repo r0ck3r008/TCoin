@@ -1,17 +1,29 @@
-Names and UFID of group members:
-Naman Arora - UFID: 39790439
-Drona Banerjee - UFID: 46627749
+-> Names and UFID of group members:
+	1. Naman Arora - UFID: 39790439
+	2. Drona Banerjee - UFID: 46627749
 
-Steps to run the code:
+-> Steps to run the code:
 
-Step 1 - Create a mix project
-Step 2 - Execute the code using mix run proj1.exs start_number end_number
+	Step 1 - Create a mix project
+	Step 2 - Execute the code using mix run proj1.exs start_number end_number
 
-Number of worker actors created = (end_number - start_number) + 2
+-> There are four types of worker actors in the logic:
+	1. The main GenServer, supervised directly by the supervisor (M).
+	2. A Task for each number in the provided range that checks the vampire qualities of the number assigned to it by M (ti).
+	3. A Task for each divisor for each ti givin that divisor lies within the range of 10^(num_of_digits/2-1)..(10^(num_of_digits/2)-1) (t2ij)
+	4. An agent to accumulate all the numbers and their respective divisors, which have been tested positive for vampire qualities. (A)
+		-> M + t(i=[n2-n1]) + t(i=[n2-n1])(j=num_of_divisors_within_R) + A
+			where n1,n2 are the starting and ending ranges
+			R= 10^(num_of_digits/2-1)..(10^(num_of_digits/2)-1)
 
-Size of work unit = Checking the vampire qualities of one number from the range provided
+-> This particular stratergy was selected on trial and error basis.
 
-Result of running program for: mix run proj1.exs 100000 200000
+-> Size of work unit -> ('k' corresponds to a single vampire quality check, a finite number of 'l' make a 'k')
+		1. M: The whole range of numbers, ie (n2-n1)*k
+		2. ti: Checking the vampire quality of ith number, ie k
+		3. tij: Checkin the vampire quality of ith number against jth given divisor, ie l
+
+-> Result of running program for: mix run proj1.exs 100000 200000
 
 102510 201 510
 163944 396 414
@@ -78,7 +90,7 @@ real 0.93s
 user 8.75s
 sys 0.20s
 
-CPU time/real time = (user + sys)/real = 9.62
+-> CPU time/real time = (user + sys)/real = 9.62
 
-Largest problem solved mix run proj1.exs 1 10000000
-Larget vampire number found: 939658
+-> Largest problem solved mix run proj1.exs 1 10000000
+-> Larget vampire number found: 939658
