@@ -21,7 +21,7 @@
 -> Size of work unit -> ('k' corresponds to a single vampire quality check, a finite number of 'l' make a 'k')
 		1. M: The whole range of numbers, ie (n2-n1)*k
 		2. ti: Checking the vampire quality of ith number, ie k
-		3. tij: Checkin the vampire quality of ith number against jth given divisor, ie l
+		3. tij: Checking the vampire quality of ith number against jth given divisor, ie l
 
 -> Result of running program for: mix run proj1.exs 100000 200000
 
