@@ -4,7 +4,7 @@
 
 -> Steps to run the code:
 
-	Step 1 - Create a mix project
+	Step 1 - Change directory to the mix project (Proj1)
 	Step 2 - Execute the code using mix run proj1.exs start_number end_number
 
 -> There are four types of worker actors in the logic:
