@@ -1,4 +1,4 @@
-defmodule PlusOne.Supervisor do
+defmodule Vampire.Supervisor do
 
   use Supervisor
 
@@ -8,21 +8,26 @@ defmodule PlusOne.Supervisor do
 
   @impl true
   def init(range) do
-    Supervisor.start_link([
-      supervisor(Task.Supervisor, name: Main_fn_supervisor)
+    Supervisor.init([
+      {Vampire, range}
     ], strategy: :one_for_one)
 
-    Task.Supervisor.start_child(Main_fn_supervisor, fn-> Main_fn.main(range) end)
   end
 
 end
 
-defmodule Main_fn do
+defmodule Vampire do
 
-  #@impl true
-  def main(range) do
+  use GenServer
+
+  def start_link(range) do
+    GenServer.start_link(__MODULE__, range, name: __MODULE__)
+  end
+
+  @impl true
+  def init(range) do
     task_loop(range)
-    #    {:ok, Main_fn}
+    {:ok, range}
   end
 
   def task_loop(range) do
