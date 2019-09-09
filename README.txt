@@ -1,15 +1,17 @@
 Names and UFID of group members:
-Naman Arora - UFID: 
+Naman Arora - UFID: 39790439
 Drona Banerjee - UFID: 46627749
 
 Steps to run the code:
 
 Step 1 - Create a mix project
-Step 2 - Execute the code using mix run Proj1.exs start_number end_number
+Step 2 - Execute the code using mix run proj1.exs start_number end_number
 
-Number of worker actors created = end_number - start_number
+Number of worker actors created = (end_number - start_number) + 2
 
-Result of running your program for: mix run proj1.exs 100000 200000
+Size of work unit = Checking the vampire qualities of one number from the range provided
+
+Result of running program for: mix run proj1.exs 100000 200000
 
 102510 201 510
 163944 396 414
@@ -72,11 +74,11 @@ Result of running your program for: mix run proj1.exs 100000 200000
 
 Running time for mix run proj1.exs 100000 200000
 
-real 0.84s
-user 7.60s
+real 0.93s
+user 8.75s
 sys 0.20s
 
-CPU time/real time = (user + sys)/real = 9.29
+CPU time/real time = (user + sys)/real = 9.62
 
-Largest problem solved mix run proj1.exs 200000 1000000
+Largest problem solved mix run proj1.exs 1 10000000
 Larget vampire number found: 939658
