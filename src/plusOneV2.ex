@@ -9,28 +9,34 @@ defmodule PlusOne.Supervisor do
   @impl true
   def init(range) do
     Supervisor.start_link([
-      {Main_fn, range}
+      supervisor(Task.Supervisor, name: Main_fn_supervisor)
     ], strategy: :one_for_one)
-    end
+
+    Task.Supervisor.start_child(Main_fn_supervisor, fn-> Main_fn.main(range) end)
+  end
 
 end
 
 defmodule Main_fn do
 
+  #@impl true
   def main(range) do
     task_loop(range)
+    #    {:ok, Main_fn}
   end
 
   def task_loop(range) do
-    tasks=for x<-range, do: Task.async(fn-> vamp_chk(x) end)
-    res_maps=for task<-tasks, do: Task.await(task)
+    {:ok, a_pid}=Agent.start(fn-> %{} end)
+
+    for x<-range, do: Task.start(fn-> vamp_chk(x, a_pid) end)
 
     #print O/P
-    Enum.map(res_maps, fn({_, res})-> res end)
-    #    for {num, dvsrs}<-res_maps, do: IO.puts "#{num} #{Enum.each(dvsrs, fn(x)-> x end)}"
+    op_map=Agent.get(a_pid, fn(state)->state end)
+    Enum.each(op_map, fn({key, val})-> IO.puts "#{key} #{Enum.join(val, " ")}" end)
+
   end
 
-  def vamp_chk(num) do
+  def vamp_chk(num, a_pid) do
     n_num_dig=num_dig(num, 0)
 
     case rem(n_num_dig, 2) do
@@ -42,20 +48,12 @@ defmodule Main_fn do
 
         valid_dvsr=fn(i)-> rem(num, i)==0 and i != num and i != 1 end
         list=for x<-r_start..r_end, valid_dvsr.(x), do: x
-        tasks=for x<-list, do: Task.async(fn-> fang_chk(num, x) end)
-        dvsrs=for task<-tasks, do: Task.await(task)
-        #        dvsrs=Enum.each(task_with_res, fn({_, {:ok, res}})-> res end)
-        dvsrs=Enum.uniq(List.flatten(dvsrs))--[nil, :discard, :ok]
-        if dvsrs != [] do
-          %{num=>dvsrs}
-        else
-          %{nil=>nil}
-        end
+        for x<-list, do: Task.start_link(fn-> fang_chk(num, x, a_pid) end)
     end
   end
 
-  def fang_chk(_num, nil), do: :discard
-  def fang_chk(num, dvsr) do
+  def fang_chk(_num, nil, _a_pid), do: :discard
+  def fang_chk(num, dvsr, a_pid) do
     dvsr2=trunc(num/dvsr)
     flag = !(rem(dvsr, 10) == 0 and rem(dvsr2, 10) == 0)
 
@@ -66,9 +64,13 @@ defmodule Main_fn do
 
       dvsrs_l=dvsr_l++dvsr2_l
       if num_l--dvsrs_l==[] and length(num_l)==length(dvsrs_l) do
-        [dvsr, dvsr2]
-      else
-        :discard
+        Agent.update(a_pid, fn(state)->
+          if state[num]==nil do
+            Map.put(state, num, [dvsr, dvsr2])
+          else
+            Map.update(state, num, state[num], &(Enum.uniq(&1++[dvsr, dvsr2])))
+          end
+        end)
       end
     end
   end
