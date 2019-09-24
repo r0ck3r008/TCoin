@@ -1,4 +1,4 @@
-defmodule Dispenser do
+defmodule Torus.Dispenser do
 
   use GenServer
 

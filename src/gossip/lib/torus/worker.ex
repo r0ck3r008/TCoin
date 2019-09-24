@@ -1,4 +1,4 @@
-defmodule Worker do
+defmodule Torus.Worker do
 
   use GenServer
 
@@ -29,7 +29,7 @@ defmodule Worker do
   def fetch_co_ords(num, agnt_pid, nil) do
     fetch_co_ords(num,
       agnt_pid,
-      Dispenser.get_co_cord(num, agnt_pid, self()))
+      Torus.Dispenser.get_co_cord(num, agnt_pid, self()))
   end
   def fetch_co_ords(_num, _agnt_pid, co_ords), do: co_ords
 
