@@ -4,11 +4,11 @@ defmodule Torus.Dispenser do
 
   #public API
   def start_link do
-    GenServer.start_link(__MODULE__, :ok, name: __MODULE__)
+    GenServer.start_link(__MODULE__, :ok)
   end
 
-  def get_co_ord(num, agnt_pid, caller) do
-    {:reply, co_ords, _}=GenServer.call({:fetch_co_ord, num})
+  def get_co_ord(to, num, agnt_pid, caller) do
+    {:reply, co_ords, _}=GenServer.call(to, {:fetch_co_ord, num})
 
     case Agent.get(agnt_pid, &Map.get(&1, co_ords)) do
       nil->

@@ -3,9 +3,9 @@ defmodule Torus.Worker do
   use GenServer
 
   #public API
-  def start_link(num, agnt_pid) do
+  def start_link(num, agnt_pid, disp_pid) do
     #find co_ordinates
-    co_ords=fetch_co_ords(num, agnt_pid, nil)
+    co_ords=fetch_co_ords(num, agnt_pid, disp_pid, nil)
 
     #fetch neighbors
     nbor_co_ords=calc_nbor_co_ords(
@@ -23,15 +23,15 @@ defmodule Torus.Worker do
     )
     nbor_dir=fetch_nbors(nbor_co_ords, agnt_pid, %{co_ords=>self()}, 0)
 
-    GenServer.start_link(__MODULE__, nbor_dir, name: __MODULE__)
+    GenServer.start_link(__MODULE__, nbor_dir)
   end
 
-  def fetch_co_ords(num, agnt_pid, nil) do
+  def fetch_co_ords(num, agnt_pid, disp_pid, nil) do
     fetch_co_ords(num,
       agnt_pid,
-      Torus.Dispenser.get_co_cord(num, agnt_pid, self()))
+      Torus.Dispenser.get_co_cord(disp_pid, num, agnt_pid, self()))
   end
-  def fetch_co_ords(_num, _agnt_pid, co_ords), do: co_ords
+  def fetch_co_ords(_disp_pid, _num, _agnt_pid, co_ords), do: co_ords
 
   def calc_nbor_co_ords(_num, _co_ords, _dlta_mat, nbor_co_ords, 6), do: nbor_co_ords
   def calc_nbor_co_ords(num, co_ords, dlta_mat, nbor_co_ords, count) do
