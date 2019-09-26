@@ -11,7 +11,7 @@ defmodule Torus do
     {:ok, disp_pid}=Torus.Dispenser.start_link
 
     #Fork workers
-    for _x<-0..n-1, do: Torus.Worker.start_link(n, agnt_pid, disp_pid)
+    for _x<-0..n3-1, do: Torus.Worker.start_link(n, agnt_pid, disp_pid)
   end
 
   def chk_cube_rt(n3, n) when rem(n3, n)==1, do: System.halt(1)
