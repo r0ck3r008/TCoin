@@ -29,9 +29,12 @@ defmodule Torus.Worker do
   def fetch_co_ords(num, agnt_pid, disp_pid, nil) do
     fetch_co_ords(num,
       agnt_pid,
-      Torus.Dispenser.get_co_cord(disp_pid, num, agnt_pid, self()))
+      disp_pid,
+      Torus.Dispenser.chk_co_cord(disp_pid,
+        {:rand.unifrom(num), :rand.uniform(num), :rand.uniform(num)},
+        agnt_pid, self()))
   end
-  def fetch_co_ords(_disp_pid, _num, _agnt_pid, co_ords), do: co_ords
+  def fetch_co_ords(_num, _agnt_pid, _disp_pid, co_ords), do: co_ords
 
   def calc_nbor_co_ords(_num, _co_ords, _dlta_mat, nbor_co_ords, 6), do: nbor_co_ords
   def calc_nbor_co_ords(num, co_ords, dlta_mat, nbor_co_ords, count) do

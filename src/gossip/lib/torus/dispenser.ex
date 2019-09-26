@@ -7,16 +7,9 @@ defmodule Torus.Dispenser do
     GenServer.start_link(__MODULE__, :ok)
   end
 
-  def get_co_ord(to, num, agnt_pid, caller) do
-    {:reply, co_ords, _}=GenServer.call(to, {:fetch_co_ord, num})
-
-    case Agent.get(agnt_pid, &Map.get(&1, co_ords)) do
-      nil->
-        Agent.update(agnt_pid, &Map.put(&1, co_ords, caller))
-        co_ords
-      _->
-        nil
-    end
+  def chk_co_ord(to, co_ords, agnt_pid, caller) do
+    {:reply, co_ords}=GenServer.call(to, {:chk_co_ord, agnt_pid, co_ords, caller})
+    co_ords
   end
 
   #callbacks
@@ -26,12 +19,18 @@ defmodule Torus.Dispenser do
   end
 
   @impl true
-  def handle_call({:fetch_co_ords, num}, _from, _curr) do
+  def handle_call({:chk_co_ords, agnt_pid, co_ords, caller}, _from, _curr) do
     {
       :reply,
-      {
-        :rand.uniform(num), :rand.uniform(num), :rand.uniform(num)
-      },
+      (
+        case Agent.get(agnt_pid, &Map.get(&1, co_ords)) do
+          nil->
+            Agent.update(agnt_pid, &Map.put(&1, co_ords, caller))
+            {co_ords}
+          _->
+            nil
+        end
+      ),
       []
     }
 
