@@ -31,7 +31,7 @@ defmodule Torus.Worker do
       agnt_pid,
       disp_pid,
       Torus.Dispenser.chk_co_cord(disp_pid,
-        {:rand.unifrom(num-1), :rand.uniform(num-1), :rand.uniform(num-1)},
+        {:rand.unifrom(num)-1, :rand.uniform(num-1)-1, :rand.uniform(num-1)-1},
         agnt_pid, self()))
   end
   def fetch_co_ords(_num, _agnt_pid, _disp_pid, co_ords), do: co_ords
