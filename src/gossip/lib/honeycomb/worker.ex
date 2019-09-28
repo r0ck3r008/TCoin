@@ -11,9 +11,10 @@ defmodule Honeycomb.Worker do
     nbors=find_nbors(
       co_ords, 
       (if rem(elem(co_ords, 2))==0, do: 1, else: -1),
+      frbdn,
       nil
     )
-    nbors_dir=mk_nbor_dir(agnt_pid, nbors, %{co_ords=>self}, 3)
+    nbors_dir=mk_nbor_dir(agnt_pid, nbors, %{co_ords=>self}, Enum.count(nbors))
 
     GenServer.start_link(__MODULE__, nbor_dir)
   end
@@ -52,19 +53,18 @@ defmodule Honeycomb.Worker do
   end
   def gen_rand_co_ords(_num, _frbdn, co_ords), do: co_ords
 
-  def find_nbors(co_ords, flag, nil) do
-    #white
+  def find_nbors(co_ords, flag, frbdn, nil) do
     find_nbors(
       co_ords,
       flag,
       [
-        {elem(co_ords, 0)+flag}, elem(co_ords, 1)},
+        frbdn?({elem(co_ords, 0)+flag}, elem(co_ords, 1)}, frbdn),
         {elem(co_ords, 0), elem(co_ords, 1)+1},
         {elem(co_ords, 0), elem(co_ords, 1)-1}
       ]
     )
   end
-  def find_nbors(_co_ords, _flag, co_ords), do: co_ords
+  def find_nbors(_co_ords, _flag, frbdn, nbors), do: Enum.filter(nbors, fn(x)->!is_nil(x) end)
 
   def mk_nbor_dir(_agnt_pid, _nbors, nbor_dir, 0) do: nbor_dir
   def mk_nbor_dir(agnt_pid, nbors, nbor_dir, count) do
