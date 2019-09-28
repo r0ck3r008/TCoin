@@ -7,7 +7,7 @@ defmodule Honeycomb do
     {:ok, agnt_pid}=Agent.start_link(fn-> %{} end)
 
     #start dispenser
-    {:ok, disp_pid}=Dispenser.start_link
+    {:ok, disp_pid}=Honeycomb.Dispenser.start_link
 
     #make forbidden x and y
     frbden=mk_frbdn(n-1, nil)
