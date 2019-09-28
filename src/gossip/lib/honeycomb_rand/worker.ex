@@ -58,6 +58,7 @@ defmodule Honeycomb.Worker do
       co_ords,
       flag,
       [
+        gen_rand_co_ords(num, frbdn, nil)
         frbdn?({elem(co_ords, 0)+flag}, elem(co_ords, 1)}, frbdn),
         {elem(co_ords, 0), elem(co_ords, 1)+1},
         {elem(co_ords, 0), elem(co_ords, 1)-1}
