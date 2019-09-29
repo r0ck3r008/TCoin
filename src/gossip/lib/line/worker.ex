@@ -11,10 +11,10 @@ defmodule Line.Worker do
     nbor_co_ords=get_nbor_co_ords(pos, num, {-1, +1}, [], 0)
     GenServer.cast(pid, {
       :update_nbor_state,
-      {
+      [
         Agent.get(agnt_pid, &Map.get(&1, Enum.at(nbor_co_ords, 0))),
         Agent.get(agnt_pid, &Map.get(&1, Enum.at(nbor_co_ords, 1)))
-      }
+      ]
     })
   end
 
