@@ -10,7 +10,7 @@ defmodule Honeycomb_rand do
     {:ok, disp_pid}=Honeycomb_rand.Dispenser.start_link
 
     #make forbidden x and y
-    frbden=mk_frbdn(n-1, nil)
+    frbdn=mk_frbdn(n-1, nil)
 
     #start workers
     for _x<-0..n2-1, do: Honeycomb_rand.Worker.start_link(n, disp_pid, agnt_pid, frbdn)

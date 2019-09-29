@@ -33,5 +33,6 @@ defmodule Honeycomb_rand.Dispenser do
       ),
       []
     }
+  end
 
 end

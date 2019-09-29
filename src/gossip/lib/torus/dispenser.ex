@@ -7,7 +7,7 @@ defmodule Torus.Dispenser do
     GenServer.start_link(__MODULE__, :ok)
   end
 
-  def chk_co_ord(to, co_ords, agnt_pid, caller) do
+  def chk_co_cord(to, co_ords, agnt_pid, caller) do
     {:reply, co_ords}=GenServer.call(to, {:chk_co_ord, agnt_pid, co_ords, caller})
     co_ords
   end
@@ -33,5 +33,6 @@ defmodule Torus.Dispenser do
       ),
       []
     }
+  end
 
 end

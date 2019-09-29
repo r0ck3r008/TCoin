@@ -33,5 +33,6 @@ defmodule Honeycomb.Dispenser do
       ),
       []
     }
+  end
 
 end
