@@ -7,8 +7,9 @@ defmodule Full.Worker do
     GenServer.start_link(__MODULE__, :ok)
   end
 
-  def update_nbor_state(to, agnt_pid) do
-    GenServer.cast(to, {:update_nbors, Agent.get(agnt_pid, fn(state)->state end})
+  def update_nbor_state(to, agnt_pid, main_pid) do
+    nbor_pids=for {_, val}<-Agent.get(agnt_pid, fn(state)->state end), do: val
+    GenServer.cast(to, {:update_nbors, nbor_pids++main_pid})
   end
 
   #callbacks
@@ -19,7 +20,7 @@ defmodule Full.Worker do
 
   @impl true
   def handle_cast({:update_nbors, nbors}, _state) do
-    {:no_reply, nbors}
+    {:noreply, nbors}
   end
 
 end
