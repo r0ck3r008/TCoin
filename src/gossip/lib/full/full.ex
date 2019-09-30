@@ -44,7 +44,7 @@ defmodule Full do
     GenServer.cast(self_pid, :inc_converged)
     {num, n_converged, timer_pid}=get_state(self_pid)
     if n_converged==num do
-      IO.puts "All Converged, Time taken #{Timer.end_timer(timer_pid)}"
+      {Timer.end_timer(timer_pid)}
       GenServer.stop(self_pid, :normal)
     else
       :ok

@@ -12,7 +12,8 @@ defmodule Timer do
   end
 
   def end_timer(of) do
-    GenServer.call(of, :stop_time)
+    IO.puts("hello")
+    IO.inspect "Time taken: #{GenServer.call(of, :stop_time)}"
   end
 
   #callbacks
@@ -23,12 +24,13 @@ defmodule Timer do
 
   @impl true
   def handle_cast(:init_time, _state) do
-    {:noreply, :os.system_time(:milli_seconds)}
+    {:noreply, System.monotonic_time(:millisecond)}
   end
 
   @impl true
   def handle_call(:stop_time, _from, state) do
-    {:reply, :os.system_time(:milli_seconds)-state, state}
+    new_state=System.monotonic_time(:millisecond)-state
+    {:reply, new_state, new_state}
   end
 
 end
