@@ -5,7 +5,7 @@ defmodule Gosp do
     [_|nbors]=wrkr_mod.get_nbors(from)
 
     #broadcast select rand neighbour
-    rand_num=:rand.uniform(length(nbors)-1)
+    rand_num=Salty.Random.uniform(length(nbors))
     nbor=Enum.at(nbors, rand_num)
     recv_rum(wrkr_mod, nbor)
   end

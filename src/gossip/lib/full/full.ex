@@ -35,7 +35,7 @@ defmodule Full do
     Gosp.send_rum(
       mod_name,
       Agent.get(
-        agnt_pid, &Enum.at(&1, :rand.uniform(num)-1)
+        agnt_pid, &Enum.at(&1, Salty.Random.uniform(num)-1)
       )
     )
   end
