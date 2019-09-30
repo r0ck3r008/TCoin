@@ -2,14 +2,34 @@ defmodule Full.Worker do
 
   use GenServer
 
-  #public API
   def start_link do
     GenServer.start_link(__MODULE__, :ok)
   end
 
-  def update_nbor_state(to, agnt_pid, main_pid) do
-    nbor_pids=for {_, val}<-Agent.get(agnt_pid, fn(state)->state end), do: val
-    GenServer.cast(to, {:update_nbors, nbor_pids++main_pid})
+  def update_nbors(self_pid, agnt_pid, main_pid) do
+    #get neighbours
+    nbors=Agent.get(agnt_pid, fn(state)->state end)
+
+    #update state
+    GenServer.cast(self_pid, {:update_state, [main_pid]++nbors})
+  end
+
+  def get_nbors(of) do
+    GenServer.call(of, :get_nbors)
+  end
+
+  def inc_round(of) do
+    GenServer.cast(of, :inc_round)
+  end
+
+  def get_round(of) do
+    GenServer.call(of, :get_round)
+  end
+
+  def converge(of) do
+    [main_pid|_]=get_nbors(of)
+    Full.converged(main_pid)
+    GenServer.stop(of, :normal)
   end
 
   #callbacks
@@ -19,8 +39,22 @@ defmodule Full.Worker do
   end
 
   @impl true
-  def handle_cast({:update_nbors, nbors}, _state) do
-    {:noreply, nbors}
+  def handle_cast({:update_state, new_state}, _state) do
+    {:noreply, {new_state, 0}}
+  end
+
+  def handle_cast(:inc_round, state) do
+    {:noreply, {elem(state, 0), elem(state, 1)+1}}
+  end
+
+  @impl true
+  def handle_call(:get_nbors, _from, state) do
+    {:reply, elem(state, 0), state}
+  end
+
+  @impl true
+  def handle_call(:get_round, _from, state) do
+    {:reply, elem(state, 1), state}
   end
 
 end

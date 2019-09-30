@@ -2,26 +2,73 @@ defmodule Full do
 
   use GenServer
 
-  #public API
   def start_link(num) do
     #start agent
-    {:ok, agnt_pid}=Agent.start_link(fn->[] end)
+    {:ok, agnt_pid}=Agent.start_link(fn-> [] end)
 
-    #spawn workers
+    #start timer
+    {:ok, timer_pid}=Timer.start_link
+
+    #start workers
     workers=for _x<-0..num-1, do: Full.Worker.start_link
+    workers=for {_, wrkr}<-workers, do: wrkr
 
     #update agent
     Agent.update(agnt_pid, &(&1++workers))
 
-    #send msgs to all workers that neighbours are ready to be fetched
-    for worker<-workers, do: Full.Worker.update_nbor_state(elem(worker, 1), agnt_pid, [self()])
-    GenServer.start_link(__MODULE__, num)
+    #start main
+    {:ok, main_pid}=GenServer.start_link(__MODULE__, {num, timer_pid})
+
+    #update workers
+    for worker<-workers, do: Full.Worker.update_nbors(worker, agnt_pid, main_pid)
+    #start rumer
+    start_rum(num, agnt_pid, timer_pid)
+    {:ok, main_pid}
+  end
+
+  def start_rum(num, agnt_pid, timer_pid) do
+    #start timer
+    Timer.start_timer(timer_pid)
+
+    #send first rumer
+    mod_name=Full.Worker
+    Gosp.send_rum(
+      mod_name,
+      Agent.get(
+        agnt_pid, &Enum.at(&1, :rand.uniform(num)-1)
+      )
+    )
+  end
+
+  def converged(self_pid) do
+    GenServer.cast(self_pid, :inc_converged)
+    {num, n_converged, timer_pid}=get_state(self_pid)
+    if n_converged==num do
+      IO.puts "All Converged, Time taken #{Timer.end_timer(timer_pid)}"
+      GenServer.stop(self_pid, :normal)
+    else
+      :ok
+    end
+  end
+
+  def get_state(self_pid) do
+    GenServer.call(self_pid, :get_state)
   end
 
   #callbacks
   @impl true
-  def init(num) do
-    {:ok, num}
+  def init(attrs) do
+    {:ok, {elem(attrs, 0), 0, elem(attrs, 1)}}
+  end
+
+  @impl true
+  def handle_cast(:inc_converged, state) do
+    {:noreply, {elem(state, 0), elem(state, 1)+1, elem(state, 2)}}
+  end
+
+  @impl true
+  def handle_call(:get_state, _from, state) do
+    {:reply, state, state}
   end
 
 end
