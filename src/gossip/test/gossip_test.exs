@@ -1,8 +1,7 @@
 defmodule GossipTest do
   use ExUnit.Case
-  doctest Gossip
 
-  test "greets the world" do
-    assert Gossip.hello() == :world
+  test "Full topology" do
+    assert Gossip.start(100000, Full)
   end
 end
