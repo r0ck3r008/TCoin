@@ -35,19 +35,19 @@ defmodule Full do
     Gosp.send_rum(
       mod_name,
       Agent.get(
-        agnt_pid, &Enum.at(&1, Salty.Random.uniform(num)-1)
+        agnt_pid, &Enum.at(&1, Salty.Random.uniform(num))
       )
     )
   end
 
   def converged(self_pid) do
-    GenServer.cast(self_pid, :inc_converged)
     {num, n_converged, timer_pid}=get_state(self_pid)
-    if n_converged==num do
-      {Timer.end_timer(timer_pid)}
+    dlta=num-n_converged
+    if dlta==1 do
+      Timer.end_timer(timer_pid)
       GenServer.stop(self_pid, :normal)
     else
-      :ok
+      GenServer.cast(self_pid, :inc_converged)
     end
   end
 
