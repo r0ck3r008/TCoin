@@ -7,27 +7,46 @@ defmodule Line.Worker do
     GenServer.start_link(__MODULE__, :ok)
   end
 
-  def update_nbor_state(pid, num, agnt_pid, pos) do
+  def update_nbor_state(pid, pos, num, agnt_pid, main_pid) do
     nbor_co_ords=get_nbor_co_ords(pos, num, {-1, +1}, [], 0)
     GenServer.cast(pid, {
       :update_nbor_state,
       [
+        main_pid,
         Agent.get(agnt_pid, &Map.get(&1, Enum.at(nbor_co_ords, 0))),
         Agent.get(agnt_pid, &Map.get(&1, Enum.at(nbor_co_ords, 1)))
       ]
     })
   end
 
-  def get_nbor_co_ords(0, nbors, dlta_mat, 0), do: get_nbor_co_ords(0, nbors, dlta_mat, 1)
-  def get_nbor_co_ords(pos, num, nbors, _dlta_mat, count) when pos==num-1, do: get_nbor_co_ords(pos, num, nbors, {-1, -1}, count+1)
-  def get_nbor_co_ords(_pos, nbors, _dlta_mat, 2), do: nbors
-  def get_nbor_co_ords(pos, nbors, dlta_mat, count) do
+  def get_nbor_co_ords(0, num, dlta_mat, [], 0), do: get_nbor_co_ords(0, num, dlta_mat, [], 1)
+  def get_nbor_co_ords(pos, num, _dlta_mat, [], 0) when pos == num-1, do: get_nbor_co_ords(pos, num, {-1, -1}, [], 1)
+  def get_nbor_co_ords(_pos, _num, _dlta_mat, nbors, 2), do: nbors
+  def get_nbor_co_ords(pos, num, dlta_mat, nbors, count) do
     get_nbor_co_ords(
       pos,
-      nbors++[pos+elem(dlta_mat, count)],
+      num,
       dlta_mat,
+      nbors++[pos+elem(dlta_mat, count)],
       count+1
     )
+  end
+
+  def get_nbors(of) do
+    GenServer.call(of, :get_nbors)
+  end
+
+  def get_round(of) do
+    GenServer.call(of, :get_round)
+  end
+
+  def inc_round(of) do
+    GenServer.cast(of, :inc_round)
+  end
+
+  def converge(of) do
+    [main_pid|_]=get_nbors(of)
+    Line.converged(main_pid)
   end
 
   #callbacks
@@ -38,7 +57,22 @@ defmodule Line.Worker do
 
   @impl true
   def handle_cast({:update_nbor_state, nbors}, _state) do
-    {:no_reply, nbors}
+    {:noreply, {nbors, 0}}
+  end
+
+  @impl true
+  def handle_cast(:inc_round, state) do
+    {:noreply, {elem(state, 0), elem(state, 1)+1}}
+  end
+
+  @impl true
+  def handle_call(:get_nbors, _from, state) do
+    {:reply, elem(state, 0), state}
+  end
+
+  @impl true
+  def handle_call(:get_round, _from, state) do
+    {:reply, elem(state, 1), state}
   end
 
 end
