@@ -1,7 +1,12 @@
 defmodule GossipTest do
   use ExUnit.Case
 
-  test "Full topology" do
-    assert Gossip.start(100000, Full)
+  test "Line topology" do
+    assert Gossip.start(10, Line)
   end
+
+  test "Full topology" do
+    assert Gossip.start(1000, Full)
+  end
+
 end
