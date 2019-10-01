@@ -5,7 +5,7 @@ defmodule Gosp do
     [_|nbors]=wrkr_mod.get_nbors(from)
 
     #broadcast select rand neighbour
-    rand_num=Salty.Random.uniform(length(nbors)-1)
+    rand_num=Salty.Random.uniform(length(nbors))
     nbor=Enum.at(nbors, rand_num)
     recv_rum(wrkr_mod, nbor)
   end
@@ -17,8 +17,6 @@ defmodule Gosp do
     case n_rounds do
       9->
         wrkr_mod.converge(to)
-      10->
-        :ok
       _->
         wrkr_mod.inc_round(to)
         #send back out again
