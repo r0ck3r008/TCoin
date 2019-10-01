@@ -27,15 +27,15 @@ defmodule Full.Worker do
   end
 
   def converge(of) do
+    inc_round(of)
     [main_pid|_]=get_nbors(of)
     Full.converged(main_pid)
-    GenServer.stop(of, :normal)
   end
 
   #callbacks
   @impl true
   def init(:ok) do
-    {:ok, []}
+    {:ok, {}}
   end
 
   @impl true
@@ -43,6 +43,7 @@ defmodule Full.Worker do
     {:noreply, {new_state, 0}}
   end
 
+  @impl true
   def handle_cast(:inc_round, state) do
     {:noreply, {elem(state, 0), elem(state, 1)+1}}
   end
