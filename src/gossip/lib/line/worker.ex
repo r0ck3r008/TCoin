@@ -4,18 +4,18 @@ defmodule Line.Worker do
 
   #public API
   def start_link do
-    GenServer.start_link(__MODULE__, :ok)
+    GenServer.start_link(__MODULE__, :ok, [:debug])
   end
 
   def update_nbor_state(pid, pos, num, agnt_pid, main_pid) do
     nbor_co_ords=get_nbor_co_ords(pos, num, {-1, +1}, [], 0)
     GenServer.cast(pid, {
       :update_nbor_state,
-      [
+      Enum.filter([
         main_pid,
         Agent.get(agnt_pid, &Map.get(&1, Enum.at(nbor_co_ords, 0))),
         Agent.get(agnt_pid, &Map.get(&1, Enum.at(nbor_co_ords, 1)))
-      ]
+      ], fn(x)-> !is_nil(x) end)
     })
   end
 
