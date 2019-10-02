@@ -15,7 +15,7 @@ defmodule Honeycomb_rand do
     {:ok, timer_pid}=Timer.start_link
 
     #start genserver
-    {:ok, main_pid}=GenServer.start(__MODULE__, {t, timer_pid})
+    {:ok, main_pid}=GenServer.start(__MODULE__, {n2, timer_pid})
 
     #make forbidden x and y
     frbdn=mk_frbdn(t-1)
@@ -73,8 +73,9 @@ defmodule Honeycomb_rand do
 
     if dlta==0 do
       #stop timer
+      IO.puts "All done!"
       Timer.end_timer(timer_pid)
-      GenServer.stop(self_pid, :normal)
+      System.halt(0)
     else
       GenServer.cast(self_pid, :inc_converged)
     end
@@ -82,12 +83,20 @@ defmodule Honeycomb_rand do
 
   @impl true
   def init(attrs) do
+    Process.flag(:trap_exit, true)
     {:ok, {elem(attrs, 0), 0, elem(attrs, 1)}}
   end
 
   @impl true
-  def handle_cast(:inc_converged, state) do
-    {:noreply, {elem(state, 0), elem(state, 1)+1, elem(state, 2)}}
+  def terminate(_, _) do
+    IO.puts "Terminating as not converged!"
+    System.halt(0)
+  end
+
+  @impl true
+  def handle_cast(:inc_converged, {num, n_converged, timer_pid}) do
+    IO.puts "#{((n_converged+1)/num)*100}% converged"
+    {:noreply, {num, n_converged+1, timer_pid}}
   end
 
   @impl true
