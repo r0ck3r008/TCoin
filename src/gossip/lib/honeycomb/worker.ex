@@ -16,13 +16,14 @@ defmodule Honeycomb.Worker do
       co_ords, 
       (if rem(elem(co_ords, 0)+elem(co_ords, 1), 2)==0, do: 1, else: -1),
       frbdn,
+      t,
       nil
     )
 
     #remove deadlocks
-    num=6*(ceil(:math.pow(t, 2)))
+    num=6*(ceil(:math.pow(t+1, 2)))
     remove_deadlocks(disp_pid, num, num-Honeycomb.Dispenser.get_done_num(disp_pid))
-    #TODO whi is nil here
+
     nbor_dir=Enum.filter(mk_nbor_dir(agnt_pid, nbors, [main_pid], Enum.count(nbors)), fn(x)-> !is_nil(x) end)
 
     GenServer.cast(self_pid, {:update_state, nbor_dir})
@@ -43,10 +44,12 @@ defmodule Honeycomb.Worker do
   end
   def fetch_co_ords(_num, _self_pid, _disp_pid, _agnt_pid, _frbdn, co_ords), do: co_ords
 
-  def frbdn?(co_ords, frbdn) do
+  def frbdn?(co_ords, frbdn, t) do
     x=elem(co_ords, 0)
     y=elem(co_ords, 1)
-    if (x in elem(frbdn, 0) and y in elem(frbdn, 1)) do
+    max_x= 2*t+1
+    max_y= 4*t+2
+    if (x in elem(frbdn, 0) and y in elem(frbdn, 1)) or (x<0 or x>max_x) or (y<0 or y>max_y) do
       nil
     else
       co_ords
@@ -60,23 +63,24 @@ defmodule Honeycomb.Worker do
     }
 
     #primitive checks
-    gen_rand_co_ords(num, frbdn, frbdn?(co_ords, frbdn))
+    gen_rand_co_ords(num, frbdn, frbdn?(co_ords, frbdn, num))
   end
   def gen_rand_co_ords(_num, _frbdn, co_ords), do: co_ords
 
-  def find_nbors(co_ords, flag, frbdn, nil) do
+  def find_nbors(co_ords, flag, frbdn, t, nil) do
     find_nbors(
       co_ords,
       flag,
       frbdn,
+      t,
       [
-        frbdn?({elem(co_ords, 0)+flag, elem(co_ords, 1)}, frbdn),
-        frbdn?({elem(co_ords, 0), elem(co_ords, 1)+1}, frbdn),
-        frbdn?({elem(co_ords, 0), elem(co_ords, 1)-1}, frbdn)
+        frbdn?({elem(co_ords, 0)+flag, elem(co_ords, 1)}, frbdn, t),
+        frbdn?({elem(co_ords, 0), elem(co_ords, 1)+1}, frbdn, t),
+        frbdn?({elem(co_ords, 0), elem(co_ords, 1)-1}, frbdn, t)
       ]
     )
   end
-  def find_nbors(_co_ords, _flag, _frbdn, nbors), do: Enum.filter(nbors, fn(x)->!is_nil(x) end)
+  def find_nbors(_co_ords, _flag, _frbdn, _t, nbors), do: Enum.filter(nbors, fn(x)->!is_nil(x) end)
 
   def remove_deadlocks(_disp_pid, _num, 0), do: :ok
   def remove_deadlocks(disp_pid, num, _dlta) do
@@ -85,7 +89,6 @@ defmodule Honeycomb.Worker do
 
   def mk_nbor_dir(_agnt_pid, _nbors, nbor_dir, 0), do: Enum.filter(nbor_dir, fn(x)-> !is_nil(x) end)
   def mk_nbor_dir(agnt_pid, nbors, nbor_dir, count) do
-    IO.puts "#{count}"
     nbor_pid=Agent.get(agnt_pid, &Map.get(&1, Enum.at(nbors, count-1)))
         mk_nbor_dir(
           agnt_pid,

@@ -23,10 +23,10 @@ defmodule Honeycomb do
     #start workers
     workers=for _x<-0..n2-1, do: Honeycomb.Worker.start_link
     workers=for {_, wrkr}<-workers, do: wrkr
-    tasks=for wrkr<-workers, do: Task.async(fn-> Honeycomb.Worker.update_nbors(wrkr, t, disp_pid, agnt_pid, main_pid, frbdn) end)
+    tasks=for wrkr<-workers, do: Task.async(fn-> Honeycomb.Worker.update_nbors(wrkr, t-1, disp_pid, agnt_pid, main_pid, frbdn) end)
     for task<-tasks, do: Task.await(task, :infinity)
 
-    start_rumor(t, agnt_pid, timer_pid, disp_pid, frbdn)
+    start_rumor(t-1, agnt_pid, timer_pid, disp_pid, frbdn)
   end
 
   def get_t(n2) do
@@ -37,20 +37,22 @@ defmodule Honeycomb do
   def chk_sqrt(n2_6, n) when rem(n2_6, n)==1, do: System.halt(1)
 
   def mk_frbdn(t) do
+    x_1=for x<-0..(t-1), do: x
+    x_2=for x<-(t+2)..(2*t+1), do: x
+    y_1=for y<-0..(t-1), do: y
+    y_2=for y<-(3*t+3)..(4*t+2), do: y
     {
-      (for x<-0..(t-1), do: x)
-      ++
-      (for x<-(t+2)..(2*t+1), do: x),
-      (for y<-0..(t-1), do: y)
-      ++
-      (for y<-(3*t+3)..(4*t+2), do: y)
-      }
+      x_1++x_2,
+      y_1++y_2
+    }
   end
 
   def start_rumor(t, agnt_pid, timer_pid, disp_pid, frbdn) do
     #remove deadlocks
-    num=6*(ceil(:math.pow(t, 2)))
+    num=6*(ceil(:math.pow(t+1, 2)))
     Honeycomb.Worker.remove_deadlocks(disp_pid, num, num-Honeycomb.Dispenser.get_done_num(disp_pid))
+
+    IO.inspect Agent.get(agnt_pid, fn(state)->state end)
 
     #start timer
     Timer.start_timer(timer_pid)
