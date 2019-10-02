@@ -13,7 +13,7 @@ defmodule Honeycomb.Worker do
 
     #fetch nbors
     nbors=find_nbors(
-      co_ords, 
+      co_ords,
       (if rem(elem(co_ords, 0)+elem(co_ords, 1), 2)==0, do: 1, else: -1),
       frbdn,
       t,
@@ -24,7 +24,7 @@ defmodule Honeycomb.Worker do
     num=6*(ceil(:math.pow(t+1, 2)))
     remove_deadlocks(disp_pid, num, num-Honeycomb.Dispenser.get_done_num(disp_pid))
 
-    nbor_dir=Enum.filter(mk_nbor_dir(agnt_pid, nbors, [main_pid], Enum.count(nbors)), fn(x)-> !is_nil(x) end)
+    nbor_dir=mk_nbor_dir(agnt_pid, nbors, [main_pid], Enum.count(nbors))
 
     GenServer.cast(self_pid, {:update_state, nbor_dir})
   end
