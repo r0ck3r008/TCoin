@@ -62,8 +62,9 @@ defmodule Torus do
     delta=n3-n_converged
 
     if delta==1 do
+      IO.puts "All Done!"
       Timer.end_timer(timer_pid)
-      GenServer.stop(self_pid, :normal)
+      System.halt(0)
     else
       GenServer.cast(self_pid, :inc_converged)
     end
@@ -72,12 +73,20 @@ defmodule Torus do
   #callbacks
   @impl true
   def init(attrs) do
+    Process.flag(:trap_exit, true)
     {:ok, {elem(attrs, 0), 0, elem(attrs, 1)}}
   end
 
   @impl true
-  def handle_cast(:inc_converged, state) do
-    {:noreply, {elem(state, 0), elem(state, 1)+1, elem(state, 2)}}
+  def terminate(_, _) do
+    IO.puts "Terminating as not converged!"
+    System.halt(0)
+  end
+
+  @impl true
+  def handle_cast(:inc_converged, {num, n_converged, timer_pid}) do
+    IO.puts "#{((n_converged+1)/num)*100}% done!"
+    {:noreply, {num, n_converged+1, timer_pid}}
   end
 
   @impl true
