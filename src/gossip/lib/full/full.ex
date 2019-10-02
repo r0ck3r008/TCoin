@@ -59,7 +59,13 @@ defmodule Full do
   #callbacks
   @impl true
   def init(attrs) do
+    Process.flag(:trap_exit, true)
     {:ok, {elem(attrs, 0), 0, elem(attrs, 1)}}
+  end
+
+  @impl true
+  def terminate(_, _) do
+    IO.puts "Terminating as unconverged"
   end
 
   @impl true
