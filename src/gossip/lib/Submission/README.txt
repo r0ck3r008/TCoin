@@ -2,6 +2,14 @@ Team Members:
 Naman Arora - UFID:
 Drona Banerjee - UFID: 46627749
 
+Instructions to RUN:
+
+Run following commands from the directory which has mix.exs
+	 mix run main.exs num topology algorithm
+
+where values of topology can be - rand2D, line, full, 3DTorus, honeycomb or randhoneycomb
+and values of algorithm can be - gossip or pushsum
+
 
 Things that are working:
 1. Complete convergence is being achieved for Gossip algorithm for all topologies except rand2D. For rand2D, complete convergence is not always
