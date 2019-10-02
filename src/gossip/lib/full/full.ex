@@ -2,7 +2,7 @@ defmodule Full do
 
   use GenServer
 
-  def start_link(num) do
+  def start_link(num, algo) do
     #start agent
     {:ok, agnt_pid}=Agent.start_link(fn-> [] end)
 
@@ -10,7 +10,7 @@ defmodule Full do
     {:ok, timer_pid}=Timer.start_link
 
     #start workers
-    workers=for _x<-0..num-1, do: Full.Worker.start_link
+    workers=for x<-0..num-1, do: Full.Worker.start_link(x)
     workers=for {_, wrkr}<-workers, do: wrkr
 
     #update agent
@@ -22,17 +22,17 @@ defmodule Full do
     #update workers
     for worker<-workers, do: Full.Worker.update_nbors(worker, agnt_pid, main_pid)
     #start rumer
-    start_rum(num, agnt_pid, timer_pid)
+    start_rum(num, algo, agnt_pid, timer_pid)
     {:ok, main_pid}
   end
 
-  def start_rum(num, agnt_pid, timer_pid) do
+  def start_rum(num, algo, agnt_pid, timer_pid) do
     #start timer
     Timer.start_timer(timer_pid)
 
     #send first rumer
     mod_name=Full.Worker
-    Gosp.send_rum(
+    algo.send_rum(
       mod_name,
       Agent.get(
         agnt_pid, &Enum.at(&1, Salty.Random.uniform(num))
