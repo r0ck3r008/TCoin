@@ -15,12 +15,14 @@ defmodule Gosp do
     n_rounds=wrkr_mod.get_round(to)
     case n_rounds do
       9->
+        wrkr_mod.inc_round(to)
         wrkr_mod.converge(to)
+        send_rum(wrkr_mod, to)
       10->
         :ok
       _->
-        wrkr_mod.inc_round(to)
         #send back out again
+        wrkr_mod.inc_round(to)
         send_rum(wrkr_mod, to)
     end
   end
