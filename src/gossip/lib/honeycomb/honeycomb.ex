@@ -52,13 +52,10 @@ defmodule Honeycomb do
     num=6*(ceil(:math.pow(t+1, 2)))
     Honeycomb.Worker.remove_deadlocks(disp_pid, num, num-Honeycomb.Dispenser.get_done_num(disp_pid))
 
-    IO.inspect Agent.get(agnt_pid, fn(state)->state end)
-
     #start timer
     Timer.start_timer(timer_pid)
 
-    pid=Agent.get(agnt_pid, &Map.get(&1, Honeycomb.Worker.gen_rand_co_ords(t, frbdn, nil)))
-    
+    pid=Agent.get(agnt_pid, &Map.get(&1, Honeycomb.Worker.gen_rand_co_ords(t, frbdn, nil))) 
     wrkr_mod=Honeycomb.Worker
     Gosp.send_rum(
       wrkr_mod,
