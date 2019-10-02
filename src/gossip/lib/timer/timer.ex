@@ -12,7 +12,6 @@ defmodule Timer do
   end
 
   def end_timer(of) do
-    IO.puts("hello")
     IO.inspect "Time taken: #{GenServer.call(of, :stop_time)}"
   end
 
