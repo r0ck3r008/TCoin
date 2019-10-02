@@ -13,10 +13,11 @@ defmodule Gosp do
   #called inside the receiver's public API
   def recv_rum(wrkr_mod, to) do
     n_rounds=wrkr_mod.get_round(to)
-    #    IO.puts ("#{n_rounds}")
     case n_rounds do
       9->
         wrkr_mod.converge(to)
+      10->
+        :ok
       _->
         wrkr_mod.inc_round(to)
         #send back out again
