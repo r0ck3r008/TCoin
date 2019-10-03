@@ -54,7 +54,7 @@ defmodule Line do
     if delta==1 do
       IO.puts "All Done!"
       Timer.end_timer(timer_pid)
-      System.halt(0)
+      exit(:shutdown)
     else
       GenServer.cast(self_pid, :inc_converged)
     end
@@ -70,7 +70,7 @@ defmodule Line do
   @impl true
   def terminate(_, _) do
     IO.puts "Terminating as not converged!"
-    System.halt(0)
+    exit(:shutdown)
   end
 
   @impl true
