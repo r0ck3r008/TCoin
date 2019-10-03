@@ -13,7 +13,7 @@ defmodule Honeycomb_rand.Worker do
 
     #fetch nbors
     nbors=find_nbors(
-      co_ords, 
+      co_ords,
       (if rem(elem(co_ords, 0)+elem(co_ords, 1), 2)==0, do: 1, else: -1),
       frbdn,
       t,
@@ -58,8 +58,8 @@ defmodule Honeycomb_rand.Worker do
 
   def gen_rand_co_ords(num, frbdn, nil) do
     co_ords={
-      Salty.Random.uniform(2*(num)+2),
-      Salty.Random.uniform(4*(num)+3)
+      :rand.uniform(2*(num)+2)-1,
+      :rand.uniform(4*(num)+3)-1
     }
 
     #primitive checks

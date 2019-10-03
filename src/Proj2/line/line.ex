@@ -39,7 +39,7 @@ defmodule Line do
     wrkr_mod=Line.Worker
     algo.send_rum(
       wrkr_mod,
-      Agent.get(agnt_pid, &Map.get(&1, :rand.uniform(num)-1))
+      Agent.get(agnt_pid, &Map.get(&1, Salty.Random.uniform(num)))
     )
   end
 

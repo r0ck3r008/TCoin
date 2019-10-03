@@ -58,8 +58,8 @@ defmodule Honeycomb.Worker do
 
   def gen_rand_co_ords(num, frbdn, nil) do
     co_ords={
-      :rand.uniform(2*(num)+2)-1,
-      :rand.uniform(4*(num)+3)-1
+      Salty.Random.uniform(2*(num)+2),
+      Salty.Random.uniform(4*(num)+3)
     }
 
     #primitive checks

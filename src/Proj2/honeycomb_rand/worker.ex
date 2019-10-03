@@ -1,4 +1,4 @@
-defmodule Honeycomb.Worker do
+defmodule Honeycomb_rand.Worker do
 
   use GenServer
 
@@ -13,7 +13,7 @@ defmodule Honeycomb.Worker do
 
     #fetch nbors
     nbors=find_nbors(
-      co_ords,
+      co_ords, 
       (if rem(elem(co_ords, 0)+elem(co_ords, 1), 2)==0, do: 1, else: -1),
       frbdn,
       t,
@@ -22,9 +22,9 @@ defmodule Honeycomb.Worker do
 
     #remove deadlocks
     num=6*(ceil(:math.pow(t+1, 2)))
-    remove_deadlocks(disp_pid, num, num-Honeycomb.Dispenser.get_done_num(disp_pid))
+    remove_deadlocks(disp_pid, num, num-Honeycomb_rand.Dispenser.get_done_num(disp_pid))
 
-    nbor_dir=mk_nbor_dir(agnt_pid, nbors, [main_pid], Enum.count(nbors))
+    nbor_dir=Enum.filter(mk_nbor_dir(agnt_pid, nbors, [main_pid], Enum.count(nbors)), fn(x)-> !is_nil(x) end)
 
     GenServer.cast(self_pid, {:update_state, nbor_dir})
   end
@@ -39,7 +39,7 @@ defmodule Honeycomb.Worker do
       disp_pid,
       agnt_pid,
       frbdn,
-      Honeycomb.Dispenser.chk_co_ord(disp_pid, co_ords, agnt_pid, self_pid)
+      Honeycomb_rand.Dispenser.chk_co_ord(disp_pid, co_ords, agnt_pid, self_pid)
     )
   end
   def fetch_co_ords(_num, _self_pid, _disp_pid, _agnt_pid, _frbdn, co_ords), do: co_ords
@@ -58,8 +58,8 @@ defmodule Honeycomb.Worker do
 
   def gen_rand_co_ords(num, frbdn, nil) do
     co_ords={
-      :rand.uniform(2*(num)+2)-1,
-      :rand.uniform(4*(num)+3)-1
+      Salty.Random.uniform(2*(num)+2),
+      Salty.Random.uniform(4*(num)+3)
     }
 
     #primitive checks
@@ -74,6 +74,7 @@ defmodule Honeycomb.Worker do
       frbdn,
       t,
       [
+        gen_rand_co_ords(t, frbdn, nil),
         frbdn?({elem(co_ords, 0)+flag, elem(co_ords, 1)}, frbdn, t),
         frbdn?({elem(co_ords, 0), elem(co_ords, 1)+1}, frbdn, t),
         frbdn?({elem(co_ords, 0), elem(co_ords, 1)-1}, frbdn, t)
@@ -84,7 +85,7 @@ defmodule Honeycomb.Worker do
 
   def remove_deadlocks(_disp_pid, _num, 0), do: :ok
   def remove_deadlocks(disp_pid, num, _dlta) do
-    remove_deadlocks(disp_pid, num, num-Honeycomb.Dispenser.get_done_num(disp_pid))
+    remove_deadlocks(disp_pid, num, num-Honeycomb_rand.Dispenser.get_done_num(disp_pid))
   end
 
   def mk_nbor_dir(_agnt_pid, _nbors, nbor_dir, 0), do: Enum.filter(nbor_dir, fn(x)-> !is_nil(x) end)
@@ -111,6 +112,10 @@ defmodule Honeycomb.Worker do
   end
 
   def reset_round(of) do
+    GenServer.cast(of, :reset_round)
+  end
+
+  def half_s_w(of) do
     GenServer.cast(of, :half_s_w)
   end
 
@@ -118,13 +123,9 @@ defmodule Honeycomb.Worker do
     GenServer.call(of, :get_s_w)
   end
 
-  def half_s_w(of) do
-    GenServer.cast(of, :half_s_w)
-  end
-
   def converge(of) do
     [main_pid| _]=get_nbors(of)
-    Honeycomb.converged(main_pid)
+    Honeycomb_rand.converged(main_pid)
   end
 
   #callbacks
@@ -139,6 +140,11 @@ defmodule Honeycomb.Worker do
   end
 
   @impl true
+  def handle_cast(:inc_round, {nbors, n_round, ratio}) do
+    {:noreply, {nbors, n_round+1, ratio}}
+  end
+
+  @impl true
   def handle_cast(:reset_round, {nbors, _n_round, ratio}) do
     {:noreply, {nbors, 0, ratio}}
   end
@@ -146,11 +152,6 @@ defmodule Honeycomb.Worker do
   @impl true
   def handle_cast(:half_s_w, {nbors, n_round, {s, w}}) do
     {:noreply, {nbors, n_round, {s/2, w/2}}}
-  end
-
-  @impl true
-  def handle_cast(:inc_round, {nbors, n_round, ratio}) do
-    {:noreply, {nbors, n_round+1, ratio}}
   end
 
   @impl true
@@ -167,5 +168,6 @@ defmodule Honeycomb.Worker do
   def handle_call(:get_s_w, _from, {nbors, n_round, ratio}) do
     {:reply, ratio, {nbors, n_round, ratio}}
   end
+
 
 end

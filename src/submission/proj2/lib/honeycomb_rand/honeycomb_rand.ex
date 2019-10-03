@@ -36,7 +36,7 @@ defmodule Honeycomb_rand do
   def chk_sqrt(n2_6, n) when rem(n2_6, n)==0, do: n
   def chk_sqrt(n2_6, n) when rem(n2_6, n)==1 do
     IO.puts "Error number must be of the form 6t^2"
-    System.halt(1)
+    exit(:normal)
   end
 
   def mk_frbdn(t) do
@@ -78,7 +78,7 @@ defmodule Honeycomb_rand do
       #stop timer
       IO.puts "All done!"
       Timer.end_timer(timer_pid)
-      System.halt(0)
+      exit(:normal)
     else
       GenServer.cast(self_pid, :inc_converged)
     end
@@ -93,7 +93,7 @@ defmodule Honeycomb_rand do
   @impl true
   def terminate(_, _) do
     IO.puts "Terminating as not converged!"
-    System.halt(0)
+    exit(:normal)
   end
 
   @impl true

@@ -35,7 +35,7 @@ defmodule Full do
     algo.send_rum(
       mod_name,
       Agent.get(
-        agnt_pid, &Enum.at(&1, :rand.uniform(num)-1)
+        agnt_pid, &Enum.at(&1, Salty.Random.uniform(num))
       )
     )
   end
@@ -46,7 +46,7 @@ defmodule Full do
     if dlta==1 do
       IO.puts "All Done!"
       Timer.end_timer(timer_pid)
-      exit(:normal)
+      System.halt(0)
     else
       GenServer.cast(self_pid, :inc_converged)
     end
@@ -65,7 +65,6 @@ defmodule Full do
 
   @impl true
   def terminate(_, _) do
-    exit(:normal)
     IO.puts "Terminating as unconverged"
   end
 

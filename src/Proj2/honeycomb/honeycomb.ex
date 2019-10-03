@@ -36,7 +36,7 @@ defmodule Honeycomb do
   def chk_sqrt(n2_6, n) when rem(n2_6, n)==0, do: n
   def chk_sqrt(n2_6, n) when rem(n2_6, n)==1 do
     IO.puts "Node number must be in form of 6t^2"
-    exit(:normal)
+    System.halt(1)
   end
 
   def mk_frbdn(t) do
@@ -78,7 +78,7 @@ defmodule Honeycomb do
       #stop timer
       IO.puts "All done!"
       Timer.end_timer(timer_pid)
-      exit(:normal)
+      System.halt(0)
     else
       GenServer.cast(self_pid, :inc_converged)
     end
@@ -93,7 +93,7 @@ defmodule Honeycomb do
   @impl true
   def terminate(_, _) do
     IO.puts "Terminating as not converged!"
-    exit(:normal)
+    System.halt(0)
   end
 
   @impl true

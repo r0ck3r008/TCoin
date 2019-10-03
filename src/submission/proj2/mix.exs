@@ -6,6 +6,7 @@ defmodule Proj2.MixProject do
       app: :proj2,
       version: "0.1.0",
       elixir: "~> 1.9",
+      escript: [main_module: Proj2],
       start_permanent: Mix.env() == :prod,
       deps: deps()
     ]
@@ -21,7 +22,7 @@ defmodule Proj2.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:salty, "~> 0.1.3", hex: :libsalty}
+      #      {:salty, "~> 0.1.3", hex: :libsalty}
     ]
   end
 end

@@ -7,7 +7,7 @@ defmodule PushSum do
     wrkr_mod.half_s_w(from)
 
     #broadcast select rand neighbour
-    rand_num=:rand.uniform(length(nbors))-1
+    rand_num=Salty.Random.uniform(length(nbors))
     nbor=Enum.at(nbors, rand_num)
     recv_rum(wrkr_mod, nbor, {s_i/2, w_i/2})
   end

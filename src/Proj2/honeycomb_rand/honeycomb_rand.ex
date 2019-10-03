@@ -1,4 +1,4 @@
-defmodule Honeycomb do
+defmodule Honeycomb_rand do
 
   use GenServer
 
@@ -9,7 +9,7 @@ defmodule Honeycomb do
     {:ok, agnt_pid}=Agent.start_link(fn-> %{} end)
 
     #start dispenser
-    {:ok, disp_pid}=Honeycomb.Dispenser.start_link
+    {:ok, disp_pid}=Honeycomb_rand.Dispenser.start_link
 
     #start timer
     {:ok, timer_pid}=Timer.start_link
@@ -21,9 +21,9 @@ defmodule Honeycomb do
     frbdn=mk_frbdn(t-1)
 
     #start workers
-    workers=for x<-0..n2-1, do: Honeycomb.Worker.start_link(x)
+    workers=for x<-0..n2-1, do: Honeycomb_rand.Worker.start_link(x)
     workers=for {_, wrkr}<-workers, do: wrkr
-    tasks=for wrkr<-workers, do: Task.async(fn-> Honeycomb.Worker.update_nbors(wrkr, t-1, disp_pid, agnt_pid, main_pid, frbdn) end)
+    tasks=for wrkr<-workers, do: Task.async(fn-> Honeycomb_rand.Worker.update_nbors(wrkr, t-1, disp_pid, agnt_pid, main_pid, frbdn) end)
     for task<-tasks, do: Task.await(task, :infinity)
 
     start_rumor(t-1, algo, agnt_pid, timer_pid, disp_pid, frbdn)
@@ -35,8 +35,8 @@ defmodule Honeycomb do
 
   def chk_sqrt(n2_6, n) when rem(n2_6, n)==0, do: n
   def chk_sqrt(n2_6, n) when rem(n2_6, n)==1 do
-    IO.puts "Node number must be in form of 6t^2"
-    exit(:normal)
+    IO.puts "Error number must be of the form 6t^2"
+    System.halt(1)
   end
 
   def mk_frbdn(t) do
@@ -53,13 +53,13 @@ defmodule Honeycomb do
   def start_rumor(t, algo, agnt_pid, timer_pid, disp_pid, frbdn) do
     #remove deadlocks
     num=6*(ceil(:math.pow(t+1, 2)))
-    Honeycomb.Worker.remove_deadlocks(disp_pid, num, num-Honeycomb.Dispenser.get_done_num(disp_pid))
+    Honeycomb_rand.Worker.remove_deadlocks(disp_pid, num, num-Honeycomb_rand.Dispenser.get_done_num(disp_pid))
 
     #start timer
     Timer.start_timer(timer_pid)
 
-    pid=Agent.get(agnt_pid, &Map.get(&1, Honeycomb.Worker.gen_rand_co_ords(t, frbdn, nil)))
-    wrkr_mod=Honeycomb.Worker
+    pid=Agent.get(agnt_pid, &Map.get(&1, Honeycomb_rand.Worker.gen_rand_co_ords(t, frbdn, nil)))
+    wrkr_mod=Honeycomb_rand.Worker
     algo.send_rum(
       wrkr_mod,
       pid
@@ -74,11 +74,11 @@ defmodule Honeycomb do
     {t, n_converged, timer_pid}=get_state(self_pid)
     dlta=(6*(ceil(:math.pow(t, 2))))-n_converged
 
-    if dlta==1 do
+    if dlta==0 do
       #stop timer
       IO.puts "All done!"
       Timer.end_timer(timer_pid)
-      exit(:normal)
+      System.halt(0)
     else
       GenServer.cast(self_pid, :inc_converged)
     end
@@ -93,7 +93,7 @@ defmodule Honeycomb do
   @impl true
   def terminate(_, _) do
     IO.puts "Terminating as not converged!"
-    exit(:normal)
+    System.halt(0)
   end
 
   @impl true

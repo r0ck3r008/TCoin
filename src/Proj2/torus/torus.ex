@@ -32,7 +32,7 @@ defmodule Torus do
 
   def chk_cube_rt(n3, n) when rem(n3, n)==1 do
     IO.puts "Entered number must be a perfet cube! Exiting..."
-    exit(:normal)
+    System.halt(0)
   end
   def chk_cube_rt(n3, n) when rem(n3, n)==0, do: :ok
 
@@ -48,9 +48,9 @@ defmodule Torus do
     algo.send_rum(
       wrkr_mod,
       Agent.get(agnt_pid, &Map.get(&1,{
-        :rand.uniform(num)-1,
-        :rand.uniform(num)-1,
-        :rand.uniform(num)-1
+        Salty.Random.uniform(num),
+        Salty.Random.uniform(num),
+        Salty.Random.uniform(num)
       }
       ))
     )
@@ -67,7 +67,7 @@ defmodule Torus do
     if delta==1 do
       IO.puts "All Done!"
       Timer.end_timer(timer_pid)
-      exit(:normal)
+      System.halt(0)
     else
       GenServer.cast(self_pid, :inc_converged)
     end
