@@ -3,8 +3,8 @@ defmodule Honeycomb_rand.Worker do
   use GenServer
 
   #public API
-  def start_link do
-    GenServer.start_link(__MODULE__, :ok)
+  def start_link(x) do
+    GenServer.start_link(__MODULE__, x)
   end
 
   def update_nbors(self_pid, t, disp_pid, agnt_pid, main_pid, frbdn) do
@@ -111,6 +111,18 @@ defmodule Honeycomb_rand.Worker do
     GenServer.call(of, :get_nbors)
   end
 
+  def reset_round(of) do
+    GenServer.cast(of, :reset_round)
+  end
+
+  def half_s_w(of) do
+    GenServer.cast(of, :half_s_w)
+  end
+
+  def get_s_w(of) do
+    GenServer.call(of, :get_s_w)
+  end
+
   def converge(of) do
     [main_pid| _]=get_nbors(of)
     Honeycomb_rand.converged(main_pid)
@@ -118,18 +130,28 @@ defmodule Honeycomb_rand.Worker do
 
   #callbacks
   @impl true
-  def init(:ok) do
-    {:ok, []}
+  def init(pos) do
+    {:ok, {0, {pos, 1}}}
   end
 
   @impl true
-  def handle_cast({:update_state, state}, _) do
-    {:noreply, {state, 0}}
+  def handle_cast({:update_state, nbors}, {n_round, ratio}) do
+    {:noreply, {nbors, n_round, ratio}}
   end
 
   @impl true
-  def handle_cast(:inc_round, state) do
-    {:noreply, {elem(state, 0), elem(state, 1)+1}}
+  def handle_cast(:inc_round, {nbors, n_round, ratio}) do
+    {:noreply, {nbors, n_round+1, ratio}}
+  end
+
+  @impl true
+  def handle_cast(:reset_round, {nbors, _n_round, ratio}) do
+    {:noreply, {nbors, 0, ratio}}
+  end
+
+  @impl true
+  def handle_cast(:half_s_w, {nbors, n_round, {s, w}}) do
+    {:noreply, {nbors, n_round, {s/2, w/2}}}
   end
 
   @impl true
@@ -141,5 +163,11 @@ defmodule Honeycomb_rand.Worker do
   def handle_call(:get_round, _from, state) do
     {:reply, elem(state, 1), state}
   end
+
+  @impl true
+  def handle_call(:get_s_w, _from, {nbors, n_round, ratio}) do
+    {:reply, ratio, {nbors, n_round, ratio}}
+  end
+
 
 end

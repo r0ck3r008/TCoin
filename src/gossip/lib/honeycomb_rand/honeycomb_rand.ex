@@ -2,7 +2,7 @@ defmodule Honeycomb_rand do
 
   use GenServer
 
-  def start_link(n2) do
+  def start_link(n2, algo) do
     t=get_t(n2)
 
     #start agent
@@ -21,12 +21,12 @@ defmodule Honeycomb_rand do
     frbdn=mk_frbdn(t-1)
 
     #start workers
-    workers=for _x<-0..n2-1, do: Honeycomb_rand.Worker.start_link
+    workers=for x<-0..n2-1, do: Honeycomb_rand.Worker.start_link(x)
     workers=for {_, wrkr}<-workers, do: wrkr
     tasks=for wrkr<-workers, do: Task.async(fn-> Honeycomb_rand.Worker.update_nbors(wrkr, t-1, disp_pid, agnt_pid, main_pid, frbdn) end)
     for task<-tasks, do: Task.await(task, :infinity)
 
-    start_rumor(t-1, agnt_pid, timer_pid, disp_pid, frbdn)
+    start_rumor(t-1, algo, agnt_pid, timer_pid, disp_pid, frbdn)
   end
 
   def get_t(n2) do
@@ -34,7 +34,10 @@ defmodule Honeycomb_rand do
   end
 
   def chk_sqrt(n2_6, n) when rem(n2_6, n)==0, do: n
-  def chk_sqrt(n2_6, n) when rem(n2_6, n)==1, do: System.halt(1)
+  def chk_sqrt(n2_6, n) when rem(n2_6, n)==1 do
+    IO.puts "Error number must be of the form 6t^2"
+    System.halt(1)
+  end
 
   def mk_frbdn(t) do
     x_1=for x<-0..(t-1), do: x
@@ -47,7 +50,7 @@ defmodule Honeycomb_rand do
     }
   end
 
-  def start_rumor(t, agnt_pid, timer_pid, disp_pid, frbdn) do
+  def start_rumor(t, algo, agnt_pid, timer_pid, disp_pid, frbdn) do
     #remove deadlocks
     num=6*(ceil(:math.pow(t+1, 2)))
     Honeycomb_rand.Worker.remove_deadlocks(disp_pid, num, num-Honeycomb_rand.Dispenser.get_done_num(disp_pid))
@@ -57,7 +60,7 @@ defmodule Honeycomb_rand do
 
     pid=Agent.get(agnt_pid, &Map.get(&1, Honeycomb_rand.Worker.gen_rand_co_ords(t, frbdn, nil)))
     wrkr_mod=Honeycomb_rand.Worker
-    Gosp.send_rum(
+    algo.send_rum(
       wrkr_mod,
       pid
     )
