@@ -3,7 +3,7 @@ defmodule Line do
   use GenServer
 
   #public API
-  def start_link(num) do
+  def start_link(num, algo) do
     #start agent
     {:ok, agnt_pid}=Agent.start_link(fn-> %{} end)
 
@@ -14,7 +14,7 @@ defmodule Line do
     {:ok, main_pid}=GenServer.start_link(__MODULE__, {num, timer_pid})
 
     #fork workers
-    workers=for _x<-0..num-1, do: Line.Worker.start_link
+    workers=for x<-0..num-1, do: Line.Worker.start_link(x)
     workers=for {_, wrkr}<-workers, do: wrkr
 
     #update agent
@@ -28,16 +28,16 @@ defmodule Line do
     for x<-0..num-1, do: Line.Worker.update_nbor_state(Enum.at(workers, x),x, num, agnt_pid, main_pid)
 
     #start rumor
-    start_rumor(num, agnt_pid, timer_pid)
+    start_rumor(num, algo, agnt_pid, timer_pid)
   end
 
-  def start_rumor(num, agnt_pid, timer_pid) do
+  def start_rumor(num, algo, agnt_pid, timer_pid) do
     #start timer
     Timer.start_timer(timer_pid)
 
     #send first rum
     wrkr_mod=Line.Worker
-    Gosp.send_rum(
+    algo.send_rum(
       wrkr_mod,
       Agent.get(agnt_pid, &Map.get(&1, Salty.Random.uniform(num)))
     )
