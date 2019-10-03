@@ -3,8 +3,8 @@ defmodule Torus.Worker do
   use GenServer
 
   #public API
-  def start_link do
-    GenServer.start_link(__MODULE__, :ok)
+  def start_link(x) do
+    GenServer.start_link(__MODULE__, x)
   end
 
   def update_state(self_pid, num, agnt_pid, disp_pid, main_pid) do
@@ -91,6 +91,18 @@ defmodule Torus.Worker do
     GenServer.call(of, :get_nbors)
   end
 
+  def reset_round(of) do
+    GenServer.cast(of, :reset_round)
+  end
+
+  def get_s_w(of) do
+    GenServer.call(of, :get_s_w)
+  end
+
+  def half_s_w(of) do
+    GenServer.cast(of, :half_s_w)
+  end
+
   def converge(of) do
     [main_pid|_]=get_nbors(of)
     Torus.converged(main_pid)
@@ -98,18 +110,33 @@ defmodule Torus.Worker do
 
   #callbacks
   @impl true
-  def init(:ok) do
-    {:ok, []}
+  def init(pos) do
+    {:ok, {0, {pos, 1}}}
   end
 
   @impl true
-  def handle_cast({:update_state, state}, _) do
-    {:noreply, {state, 0}}
+  def handle_cast({:update_state, state}, {n_round, ratio}) do
+    {:noreply, {state, n_round, ratio}}
   end
 
   @impl true
-  def handle_cast(:inc_round, state) do
-    {:noreply, {elem(state, 0), elem(state , 1)+1}}
+  def handle_cast(:reset_round, {nbors, _n_round, ratio}) do
+    {:noreply, {nbors, 0, ratio}}
+  end
+
+  @impl true
+  def handle_cast(:half_s_w, {nbors, n_round, {s, w}}) do
+    {:noreply, {nbors, n_round, {s/2, w/2}}}
+  end
+
+  @impl true
+  def handle_cast(:inc_round, {nbors, n_round, ratio}) do
+    {:noreply, {nbors, n_round+1, ratio}}
+  end
+
+  @impl true
+  def handle_call(:get_s_w, _from, {nbors, n_round, ratio}) do
+    {:reply, ratio, {nbors, n_round, ratio}}
   end
 
   @impl true

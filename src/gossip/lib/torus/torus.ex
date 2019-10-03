@@ -3,7 +3,7 @@ defmodule Torus do
   use GenServer
 
   #external API
-  def start_link(n3) do
+  def start_link(n3, algo) do
     n=ceil(:math.pow(n3, :math.pow(3, -1)))
     chk_cube_rt(n3, n)
 
@@ -20,20 +20,23 @@ defmodule Torus do
     {:ok, main_pid}=GenServer.start_link(__MODULE__, {n3, timer_pid})
 
     #Fork workers
-    workers=for _x<-0..n3-1, do: Torus.Worker.start_link
+    workers=for x<-0..n3-1, do: Torus.Worker.start_link(x)
     workers=for {_, wrkr}<-workers, do: wrkr
     tasks=for wrkr<-workers, do: Task.async(fn-> Torus.Worker.update_state(wrkr, n, agnt_pid, disp_pid, main_pid) end)
 
     for task<-tasks, do: Task.await(task, :infinity)
 
     #start rumor
-    start_rumor(n, agnt_pid, timer_pid, disp_pid)
+    start_rumor(n, algo, agnt_pid, timer_pid, disp_pid)
   end
 
-  def chk_cube_rt(n3, n) when rem(n3, n)==1, do: System.halt(1)
+  def chk_cube_rt(n3, n) when rem(n3, n)==1 do
+    IO.puts "Entered number must be a perfet cube! Exiting..."
+    System.halt(0)
+  end
   def chk_cube_rt(n3, n) when rem(n3, n)==0, do: :ok
 
-  def start_rumor(num, agnt_pid, timer_pid, disp_pid) do
+  def start_rumor(num, algo, agnt_pid, timer_pid, disp_pid) do
     #deadlock protection
     n3=ceil(:math.pow(num, 3))
     Torus.Worker.remove_deadlocks(disp_pid, n3, n3-Torus.Dispenser.get_done_count(disp_pid))
@@ -42,7 +45,7 @@ defmodule Torus do
 
     #send first rumor
     wrkr_mod=Torus.Worker
-    Gosp.send_rum(
+    algo.send_rum(
       wrkr_mod,
       Agent.get(agnt_pid, &Map.get(&1,{
         Salty.Random.uniform(num),
