@@ -1,43 +1,40 @@
-defmodule Rand2D do
-
+defmodule Proj2.Rand2D do
   use GenServer
 
-  def start_link(num) do
-    #start agent
-    {:ok, agnt_pid}=Agent.start_link(fn-> %{} end)
-
-    #start timer
-    {:ok, timer_pid}=Timer.start_link
-
-    #start workers
-    workers=for _x<-0..num-1, do: Rand2D.Worker.start_link
-    workers=for {_, wrkr}<-workers, do: wrkr
-
-    #update agent
-    #Agent.update(agnt_pid, &(&1++workers))
-    node_coordinates = Enum.reduce(workers, %{}, fn x, acc ->
-
-    Map.put(acc, x, [:rand.uniform(15)/15, :rand.uniform(15)/15])
-    end)
-
-    nbor_map = Enum.reduce(workers, %{}, fn x, acc ->
-
-    #Agent.update(agnt_pid, fn(state) -> Map.put(state, x, Rand2D.nbor_list(x, node_coordinates, workers)) end)
-    Map.put(acc, x, Rand2D.nbor_list(x, node_coordinates, workers))
-    end)
-
-    Agent.update(agnt_pid, fn(state) -> nbor_map end)
-
-    #start main
-    {:ok, main_pid}=GenServer.start_link(__MODULE__, {num, timer_pid})
-
-    #update workers
-    for worker<-workers, do: Rand2D.Worker.update_nbors(worker, agnt_pid, main_pid)
-    #start rumer
-    start_rum(num, agnt_pid, timer_pid)
-    {:ok, main_pid}
+  def start_link({num, startTime}) do
+    GenServer.start_link(__MODULE__, {num, startTime})
   end
 
+  def get_nbors(pid) do
+    GenServer.call(__MODULE__, {:nbors, pid})
+  end
+
+  def done(pid) do
+    GenServer.cast(__MODULE__, {:done, pid})
+  end
+
+
+  def init({num, startTime}) do
+    node_pids = []
+
+    for i <- 0 .. (num-1) do
+      node_pids =  [Proj2.Rand2D.Worker.start_link | node_pids]
+    end
+
+    #node_coordinates = Enum.map(node_pids, fn x -> %{x => [div(:rand.uniform(10), 10), div(:rand.uniform(10), 10)]} end)
+    node_coordinates = Enum.reduce(node_pids, %{}, fn x, acc ->
+
+      Map.put(acc, x, [div(:rand.uniform(10), 10), div(:rand.uniform(10), 10)])
+    end)
+
+    nbor_map = Enum.reduce(node_pids, %{}, fn x, acc ->
+
+      Map.put(acc, x, Proj2.Rand2D.nbor_list(x, node_coordinates, node_pids))
+    end)
+
+
+    {:ok, {nbor_map, num, startTime}}
+  end
 
   def nbor_list(id, coord, pid_list) do
 
@@ -52,13 +49,12 @@ defmodule Rand2D do
       if dist != 0 and dist <= 0.1 do
         [x | acc]
       else
-        acc ++ [id] -- [id]
+        acc ++ []
       end
 
     end)
 
   end
-
 
   def start_rum(num, agnt_pid, timer_pid) do
     #start timer
@@ -102,4 +98,21 @@ defmodule Rand2D do
     {:reply, state, state}
   end
 
+  def handle_call({:nbors, pid}, _from, map) do
+    neighbours = Map.get(map, pid)
+    {:reply, neighbours, map}
+  end
+
+  def handle_cast({:done, pid}, {nbor_map, num, startTime}) do
+
+    if(num <= 1) do
+      end_time = System.monotonic_time(:millisecond)
+      time_taken = end_time - startTime
+      IO.puts("Time taken:")
+      IO.inspect(time_taken)
+      System.halt(0)
+    end
+
+    {:noreply, {nbor_map, num-1, startTime}}
+  end
 end

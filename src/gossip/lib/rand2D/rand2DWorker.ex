@@ -1,61 +1,25 @@
-defmodule Rand2D.Worker do
-
-  use GenServer
+defmodule Proj2.Rand2D.Worker do
+use GenServer
 
   def start_link do
     GenServer.start_link(__MODULE__, :ok)
   end
 
-  def update_nbors(self_pid, agnt_pid, main_pid) do
-    #get neighbours
-    nbors=Agent.get(agnt_pid, fn(state)-> Map.get(state, self_pid) end)
-
-    #update state
-    GenServer.cast(self_pid, {:update_state, [main_pid]++nbors})
+  def init(:no_args) do
+    {:ok, 0}
   end
 
-  def get_nbors(of) do
-    GenServer.call(of, :get_nbors)
-  end
+  def handle_cast(:next, count) do
+    if(count == 0) do
+      Proj2.Rand2D.done(self())
+    end
 
-  def inc_round(of) do
-    GenServer.cast(of, :inc_round)
-  end
+    if(count <= 9) do
+      nbor_pids = Proj2.Rand2D.get_nbors(self())
+      GenServer.cast(Enum.random(nbor_pids), :next)
+    end
 
-  def get_round(of) do
-    GenServer.call(of, :get_round)
-  end
-
-  def converge(of) do
-    inc_round(of)
-    [main_pid|_]=get_nbors(of)
-    Rand2D.converged(main_pid)
-  end
-
-  #callbacks
-  @impl true
-  def init(:ok) do
-    {:ok, {}}
-  end
-
-  @impl true
-  def handle_cast({:update_state, new_state}, _state) do
-    {:noreply, {new_state, 0}}
-  end
-
-  @impl true
-  def handle_cast(:inc_round, state) do
-    {:noreply, {elem(state, 0), elem(state, 1)+1}}
-  end
-
-  @impl true
-  def handle_call(:get_nbors, _from, state) do
-    {:reply, elem(state, 0), state}
-  end
-
-  @impl true
-  def handle_call(:get_round, _from, state) do
-    {:reply, elem(state, 1), state}
+    {:noreply, count + 1}
   end
 
 end
