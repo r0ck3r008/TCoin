@@ -7,7 +7,7 @@ defmodule Tapestry.Dispenser do
   end
 
   def assign_hash(to, caller, hash) do
-    GenServer.cast(to, {:assign_hash, caller, hash})
+    GenServer.call(to, {:assign_hash, caller, hash})
   end
 
   def fetch_assigned(to) do
@@ -21,8 +21,8 @@ defmodule Tapestry.Dispenser do
   end
 
   @impl true
-  def handle_cast({:assign_hash, caller, hash}, {map, assigned}) do
-    {:noreply, {Map.put(map, caller, hash), assigned+1}}
+  def handle_call({:assign_hash, caller, hash}, _from, {map, assigned}) do
+    {:reply, hash, {Map.put(map, caller, hash), assigned+1}}
   end
 
   @impl true
