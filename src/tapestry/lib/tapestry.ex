@@ -1,18 +1,7 @@
 defmodule Tapestry do
-  @moduledoc """
-  Documentation for Tapestry.
-  """
 
-  @doc """
-  Hello world.
-
-  ## Examples
-
-      iex> Tapestry.hello()
-      :world
-
-  """
-  def hello do
-    :world
+  def start(num) do
+    Tapestry.Init.main(num)
   end
+
 end
