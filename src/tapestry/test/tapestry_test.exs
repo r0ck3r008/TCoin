@@ -1,8 +1,7 @@
 defmodule TapestryTest do
   use ExUnit.Case
-  doctest Tapestry
 
-  test "greets the world" do
-    assert Tapestry.hello() == :world
+  test "basic run" do
+    assert Tapestry.start(100)
   end
 end
