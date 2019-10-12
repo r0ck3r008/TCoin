@@ -7,7 +7,7 @@ defmodule Tapestry.Node do
   end
 
   def update_route(of, num, disp_pid) do
-    GenServer.cast(of, {:assign_hash, Salty.Random.uniform(10000000)})
+    GenServer.cast(of, {:assign_hash, Salty.Random.uniform(10000000), disp_pid})
 
     #remove deadlocks
     Tapestry.Node.Helper.remove_deadlocks(num, disp_pid, num-Tapestry.Dispenser.fetch_assigned(disp_pid))
@@ -20,7 +20,7 @@ defmodule Tapestry.Node do
   end
 
   @impl true
-  def handle_cast({:assign_hash, hash}, disp_pid) do
+  def handle_cast({:assign_hash, hash, disp_pid}, _state) do
     {:noreply,
       {Tapestry.Dispenser.assign_hash(disp_pid, self(), hash), disp_pid}
     }
