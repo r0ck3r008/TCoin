@@ -7,7 +7,11 @@ defmodule Tapestry.Node do
   end
 
   def update_route(of, num, disp_pid) do
-    GenServer.cast(of, {:assign_hash, elem(Salty.Hash.Sha256.hash(inspect of), 1), disp_pid})
+    GenServer.cast(of, {
+      :assign_hash,
+      String.slice(Base.encode16(elem(Salty.Hash.Sha256.hash(inspect of), 1)), 0, 16),
+      disp_pid
+    })
 
     #remove deadlocks
     Tapestry.Node.Helper.remove_deadlocks(num, disp_pid, num-Tapestry.Dispenser.fetch_assigned(disp_pid))
