@@ -22,12 +22,17 @@ defmodule Tapestry.Dispenser do
 
   @impl true
   def handle_call({:assign_hash, caller, hash}, _from, {map, assigned}) do
-    {:reply, hash, {Map.put(map, caller, hash), assigned+1}}
+    {:reply, hash, {Map.put(map, hash, caller), assigned+1}}
   end
 
   @impl true
   def handle_call(:fetch_assigned, _from, {map, assigned}) do
     {:reply, assigned, {map, assigned}}
+  end
+
+  @impl true
+  def handle_cast(:get_map, _from, {map, assigned}) do
+    {:reply, map, {map, assigned}}
   end
 
   @impl true
