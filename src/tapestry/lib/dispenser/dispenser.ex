@@ -31,8 +31,13 @@ defmodule Tapestry.Dispenser do
   end
 
   @impl true
-  def handle_cast(:get_map, _from, {map, assigned}) do
+  def handle_call(:get_map, _from, {map, assigned}) do
     {:reply, map, {map, assigned}}
+  end
+
+  @impl true
+  def handle_cast(:dec_assigned, {map, assigned}) do
+    {:noreply, {map, assigned-1}}
   end
 
   @impl true
