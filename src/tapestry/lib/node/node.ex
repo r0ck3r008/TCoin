@@ -8,11 +8,7 @@ defmodule Tapestry.Node do
 
   def update_route(of, num, disp_pid) do
     hash=String.slice(Base.encode16(elem(Salty.Hash.Sha256.hash(inspect of), 1)), 0, 16)
-    GenServer.cast(of, {
-      :assign_hash,
-      hash
-      disp_pid
-    })
+    GenServer.cast(of, {:assign_hash, hash, disp_pid})
 
     #remove deadlocks
     Tapestry.Node.Helper.remove_deadlocks(num, disp_pid, num-Tapestry.Dispenser.fetch_assigned(disp_pid))
@@ -36,6 +32,9 @@ defmodule Tapestry.Node do
 
   @impl true
   def handle_cast({:update_nbors, nbors}, hash) do
+    #remove self
+    nbors=Enum.uniq([{hash, self()}]++nbors)
+    IO.inspect nbors
     {:noreply, {nbors, hash}}
   end
 
