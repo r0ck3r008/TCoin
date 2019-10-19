@@ -2,35 +2,26 @@ defmodule Tapestry.Dispenser.Hash_helper do
 
   def get_nbors(disp_pid, hash) do
     map=GenServer.call(disp_pid, :get_map)
+    GenServer.cast(disp_pid, :dec_assigned)
     hashes=for {key, _}<-map, do: key
-    make_nbor_tbl(map, hashes, hash, %{}, 0)
-  end
+    tasks=for x<-0..String.length(hash)-1, do: Task.async(fn-> make_nbor_tbl(map, hashes, hash, x) end)
 
-  def make_nbor_tbl(_map, _hashes, hash, nbot_tbl, nbor_lvl) when nbor_lvl=length(hash)-1, do: nbor_tbl
-  def make_nbor_tbl(map, hashes, hash, nbor_tbl, nbor_lvl) do
+    #creates a list of maps each corresponding to each level
+    Enum.uniq(for task<-tasks, do: Task.await(task, :infinity))
+    end
+
+  def make_nbor_tbl(map, hashes, hash, nbor_lvl) do
     sub_hash=String.slice(hash, 0, nbor_lvl)
 
-    make_nbor_tbl(
-      map,
-      hashes,
-      hash,
-      search_nbor(sub_hash, map, hashes, nbor_tbl),
-      nbor_lvl+1
+    matches=Enum.filter(
+      Enum.map(
+        hashes,
+        fn(x)-> if Regex.match?(~r/^#{sub_hash}/, x)==true, do: x end
+      ),
+      fn(x)-> !is_nil(x) end
     )
-  end
-
-  def search_for_nbor(sub_hash, map, nbor_tbl) do
-    matches=for hash<-hashes do
-      if Regex.match?(~r/^#{sub_hash}/, hash) do
-        hash
-      else
-        nil
-      end
-    end
-    Enum.filter(matches, fn(x)-> !is_nil(x) end)
-    #TODO
-    #now we have matches for the particular sub_hash, update the nbor_tbl
-    #which is a map and return the same
+    match=Enum.at(matches, Salty.Random.uniform(length(matches)))
+    {match, map[match]}
   end
 
 end
