@@ -36,11 +36,6 @@ defmodule Tapestry.Dispenser do
   end
 
   @impl true
-  def handle_cast(:dec_assigned, {map, assigned}) do
-    {:noreply, {map, assigned-1}}
-  end
-
-  @impl true
   def terminate(_, _) do
     IO.puts "Terminating Dispenser"
   end
