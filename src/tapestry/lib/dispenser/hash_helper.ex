@@ -2,13 +2,11 @@ defmodule Tapestry.Dispenser.Hash_helper do
 
   def get_nbors(disp_pid, hash) do
     map=GenServer.call(disp_pid, :get_map)
-    GenServer.cast(disp_pid, :dec_assigned)
-    hashes=for {key, _}<-map, do: key
-    tasks=for x<-0..String.length(hash)-1, do: Task.async(fn-> make_nbor_tbl(map, hashes, hash, x) end)
 
-    #creates a list of maps each corresponding to each level
-    Enum.uniq(for task<-tasks, do: Task.await(task, :infinity))
-    end
+    hashes=for {key, _}<-map, do: key
+
+    for x<-0..String.length(hash)-1, do: make_nbor_tbl(map, hashes, hash, x)
+  end
 
   def make_nbor_tbl(map, hashes, hash, nbor_lvl) do
     sub_hash=String.slice(hash, 0, nbor_lvl)
