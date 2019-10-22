@@ -5,10 +5,13 @@ defmodule Tapestry.Dispenser.Hash_helper do
 
     hashes=for {key, _}<-map, do: key
 
-    for x<-0..String.length(hash)-1, do: make_nbor_tbl(map, hashes, hash, x)
-  end
-
-  def make_nbor_tbl(map, hashes, hash, nbor_lvl) do
+    matches=for x<-0..String.length(hash)-1, do: make_nbor_tbl(hashes, hash, x)
+    nbors=Enum.map(matches, fn(x)->{x, map[x]} end)
+    GenServer.cast(disp_pid, :dec_assigned)
+    nbors
+    end
+  #TODO check if ALL levels are present, including nil
+  def make_nbor_tbl(hashes, hash, nbor_lvl) do
     sub_hash=String.slice(hash, 0, nbor_lvl)
 
     matches=Enum.filter(
@@ -18,8 +21,7 @@ defmodule Tapestry.Dispenser.Hash_helper do
       ),
       fn(x)-> !is_nil(x) end
     )
-    match=Enum.at(matches, Salty.Random.uniform(length(matches)))
-    {match, map[match]}
+    Enum.at(matches, Salty.Random.uniform(length(matches)))
   end
 
 end
