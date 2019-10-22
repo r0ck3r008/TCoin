@@ -14,10 +14,11 @@ defmodule Tapestry.Node do
     #remove deadlocks
     Tapestry.Node.Helper.remove_deadlocks(num, disp_pid, num-Tapestry.Dispenser.fetch_assigned(disp_pid))
 
+    nbor_t=Task.async(fn-> Tapestry.Dispenser.Hash_helper.get_nbors(disp_pid, hash) end)
     GenServer.cast(of,
       {
         :update_nbors,
-        Tapestry.Dispenser.Hash_helper.get_nbors(disp_pid, hash)
+        Task.await(nbor_t, :infinity)
       })
   end
 
@@ -32,7 +33,7 @@ defmodule Tapestry.Node do
     {:noreply,
       {
         Tapestry.Dispenser.assign_hash(disp_pid, self(), hash),
-        agnt_pid    
+        agnt_pid
       }
     }
   end
@@ -41,14 +42,13 @@ defmodule Tapestry.Node do
   def handle_cast({:update_nbors, nbors}, {hash, agnt_pid}) do
     #remove self
     nbors=Enum.uniq([{hash, self()}]++nbors)
-    IO.inspect nbors
     {:noreply, {nbors, agnt_pid}}
   end
 
   @impl true
-  def handle_info({:publish, msg}, {nbors, agnt_pid}) do
-    IO.puts "[#{elem(hd(nbors), 0)}] Publishing #{msg}!"
-    Tapestry.Node.Helper.publish(nbors, agnt_pid, {Tapestry.Node.Helper.hash_it(msg), msg})
+  def handle_info({:publish, msg_hash, srvr_pid}, {nbors, agnt_pid}) do
+    IO.puts "[#{elem(hd(nbors), 0)}] Publishing #{msg_hash}!"
+    Tapestry.Node.Helper.publish(nbors, agnt_pid, {msg_hash, srvr_pid})
     {:noreply, {nbors, agnt_pid}}
   end
 
