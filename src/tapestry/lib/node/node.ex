@@ -41,7 +41,8 @@ defmodule Tapestry.Node do
   @impl true
   def handle_cast({:update_nbors, nbors}, {hash, agnt_pid}) do
     #remove self
-    nbors=Enum.uniq([{hash, self()}]++nbors)
+    nbors=[{hash, self()}]++nbors
+    IO.inspect nbors
     {:noreply, {nbors, agnt_pid}}
   end
 
