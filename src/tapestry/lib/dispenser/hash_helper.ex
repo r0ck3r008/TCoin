@@ -20,7 +20,11 @@ defmodule Tapestry.Dispenser.Hash_helper do
         fn(x)-> if Regex.match?(~r/^#{sub_hash}/, x)==true, do: x end
       )
     )
-    Enum.at(matches, Salty.Random.uniform(length(matches)))
+    #remove nil if matches has at least 1 match
+    matches=if matches != [nil], do: matches--[nil], else: [nil]
+    match=Enum.at(matches, Salty.Random.uniform(length(matches)))
+    #dont match the same hash
+    if match == hash, do: nil, else: match
   end
 
 end
