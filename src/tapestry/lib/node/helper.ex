@@ -27,10 +27,11 @@ defmodule Tapestry.Node.Helper do
     else
       #TODO
       #If this level returns a nil, send to surrogate
-      Enum.at(
-        rest,
-        find_match_lvl(self_hash, msg_hash, 1)
-      )
+      if is_nil(Enum.at(rest, find_match_lvl(self_hash, msg_hash, 1))) do
+        0
+      else
+        Enum.at(rest, find_match_lvl(self_hash, msg_hash, 1))
+      end
     end
   end
 
@@ -38,7 +39,7 @@ defmodule Tapestry.Node.Helper do
     if String.slice(hash1, 0, count)==String.slice(hash2, 0, count) do
       find_match_lvl(hash1, hash2, count+1)
     else
-      count
+      count-1
     end
   end
 
