@@ -4,19 +4,20 @@ defmodule Tapestry.Node.Helper do
     Salty.Hash.Sha256.hash(msg)
     |> elem(1)
     |> Base.encode16()
-    |> String.slice(0, 3)
+    |> String.slice(0, 4)
   end
 
   def remove_deadlocks(_num, _disp_pid, 0), do: :ok
   def remove_deadlocks(num, disp_pid, _dlta), do: remove_deadlocks(num, disp_pid, num-Tapestry.Dispenser.fetch_assigned(disp_pid))
 
-  def publish(nbors, agnt_pid, {msg_hash, srvr_pid}) do
+  def publish(nbors, agnt_pid, msg_hash, srvr_pid, hops) do
     nbor=find_best_match(nbors, msg_hash)
-    Agent.update(agnt_pid, &(&1++[{msg_hash, srvr_pid}]))
-    if elem(nbor, 1)==self() do
-      IO.puts "Publishing #{msg_hash} at #{inspect self()}:#{elem(hd(nbors), 0)}"
+    Agent.update(agnt_pid, &Map.put(&1, msg_hash, srvr_pid))
+    if elem(nbor, 1)==elem(hd(nbors), 1) do
+      IO.puts "[#{elem(Enum.at(nbors, 0), 0)}] Published #{msg_hash}!"
     else
-      send(elem(nbor, 1), {:publish, msg_hash, srvr_pid})
+      IO.puts "[#{elem(Enum.at(nbors, 0), 0)}] Publishing #{msg_hash}!"
+      send(elem(nbor, 1), {:publish, msg_hash, srvr_pid, hops})
     end
   end
 
@@ -25,11 +26,9 @@ defmodule Tapestry.Node.Helper do
     if diff==1 do
       {self_hash, self_pid}
     else
-      #TODO
-      #If this level returns a nil, send to surrogate
       nbor=Enum.at(rest, find_match_lvl(self_hash, msg_hash, 0))
       if is_nil(elem(nbor, 0)) do
-        {self_hash, self_pid}
+        Enum.at(rest, 0)
       else
         nbor
       end
