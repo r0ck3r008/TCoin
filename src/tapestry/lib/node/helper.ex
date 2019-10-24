@@ -4,7 +4,7 @@ defmodule Tapestry.Node.Helper do
     Salty.Hash.Sha256.hash(msg)
     |> elem(1)
     |> Base.encode16()
-    |> String.slice(0, 4)
+    |> String.slice(0, 8)
   end
 
   def remove_deadlocks(_num, _disp_pid, 0), do: :ok
@@ -23,6 +23,22 @@ defmodule Tapestry.Node.Helper do
     else
       IO.puts "[#{elem(Enum.at(nbors, 0), 0)}] Publishing #{msg_hash}!"
       send(elem(nbor, 1), {:publish, msg_hash, srvr_pid, hops})
+    end
+  end
+
+  def route_to_obj(msg_hash, rqstr_pid, {nbors, agnt_pid}) do
+    ret=Agent.get(agnt_pid, &Map.get(&1, msg_hash))
+    if ret==nil do
+      nbor=find_best_match(nbors, msg_hash)
+      if elem(nbor, 1)==self() do
+        IO.puts "[#{elem(nbor, 0)}] I seem to be root, object looks unpublished!"
+      else
+        IO.puts "[#{elem(Enum.at(nbors, 0), 0)}] Mapping not found!"
+        send(elem(nbor, 1), {:route_o, msg_hash, rqstr_pid})
+      end
+    else
+      IO.puts "[#{elem(Enum.at(nbors, 0), 0)}] Found mapping!"
+      send(rqstr_pid, {:route_o_r, msg_hash, ret})
     end
   end
 

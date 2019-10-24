@@ -84,21 +84,9 @@ defmodule Tapestry.Node do
   end
 
   @impl true
-  def handle_info({:route_o, msg_hash, rqstr_pid}, {nbors, agnt_pid}) do
-    ret=Agent.get(agnt_pid, &Map.get(&1, msg_hash))
-    if ret==nil do
-      nbor=Tapestry.Node.Helper.find_best_match(nbors, msg_hash)
-      if elem(nbor, 1)==self() do
-        IO.puts "[#{elem(nbor, 0)}] I seem to be root, the object is unpublished!"
-      else
-        IO.puts "[#{elem(Enum.at(nbors, 0), 0)}] Mapping not found!"
-        send(elem(nbor, 1), {:route_o, msg_hash, rqstr_pid})
-      end
-    else
-      IO.puts "[#{elem(Enum.at(nbors, 0), 0)}] Found mapping!"
-      send(rqstr_pid, {:route_o_r, msg_hash, ret})
-    end
-    {:noreply, {nbors, agnt_pid}}
+  def handle_info({:route_o, msg_hash, rqstr_pid}, state) do
+    Tapestry.Node.Helper.route_to_obj(msg_hash, rqstr_pid, state)
+    {:noreply, state}
   end
 
   @impl true
