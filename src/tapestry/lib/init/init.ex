@@ -25,12 +25,20 @@ defmodule Tapestry.Init do
   def dolr_call(disp_pid, nodes) do
     nbors_done?(disp_pid, Tapestry.Dispenser.fetch_assigned(disp_pid))
     publisher=Enum.at(nodes, Salty.Random.uniform(length(nodes)))
-    rqstr=Enum.at(nodes, Salty.Random.uniform(length(nodes)))
+    rqstr1=Enum.at(nodes, Salty.Random.uniform(length(nodes)))
+    rqstr2=Enum.at(nodes, Salty.Random.uniform(length(nodes)))
 
-    IO.puts("Publishing!")
+    #publish
     Tapestry.Dolr.publish("HELLO", publisher)
-    :timer.sleep(5000)
-    Tapestry.Dolr.route_to_obj("HELLO", rqstr)
+    :timer.sleep(3000)
+    #find
+    Tapestry.Dolr.route_to_obj("HELLO", rqstr1)
+    :timer.sleep(2000)
+    #unpublish
+    Tapestry.Dolr.unpublish("HELLO", publisher)
+    :timer.sleep(2000)
+    #find
+    Tapestry.Dolr.route_to_obj("Hello", rqstr2)
   end
 
   def nbors_done?(_disp_pid, 0), do: :ok
