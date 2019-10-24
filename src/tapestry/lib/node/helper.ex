@@ -38,7 +38,13 @@ defmodule Tapestry.Node.Helper do
       end
     else
       IO.puts "[#{elem(Enum.at(nbors, 0), 0)}] Found mapping!"
-      send(rqstr_pid, {:route_o_r, msg_hash, ret, hops})
+      if Enum.at(ret, 0)==self() do
+        #When the requestor is the one having mapping within
+        #display found obj and dont send a msg as it will cause a deadlock
+        IO.puts "[#{elem(hd(nbors), 0)}] Found mapping within myself! Object is: #{Enum.at(ret, 1)}"
+      else
+        send(rqstr_pid, {:route_o_r, msg_hash, ret, hops})
+      end
     end
   end
 
