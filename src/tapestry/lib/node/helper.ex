@@ -42,6 +42,21 @@ defmodule Tapestry.Node.Helper do
     end
   end
 
+  def unpublish(msg_hash, hops, {nbors, agnt_pid}) do
+    #chk whatever you have
+    ret=Agent.get(agnt_pid, &Map.get(&1, msg_hash))
+    if ret != nil do
+      #delete whatever you have and send to nbor
+      IO.puts "[#{elem(hd(nbors), 0)}] Removing mapping #{msg_hash}!"
+      Agent.update(agnt_pid, &Map.delete(&1, msg_hash))
+      nbor=find_best_match(nbors, msg_hash)
+      send(elem(nbor, 1), {:unpublish, msg_hash, hops})
+    else
+      #send to a surrogate
+      send(elem(Enum.at(nbors, 1), 1), {:unpublish, msg_hash, hops})
+    end
+  end
+
   def find_best_match([{self_hash, self_pid} | rest], msg_hash) do
     diff=elem(Integer.parse(msg_hash, 16),0)-elem(Integer.parse(self_hash, 16), 0)
     if diff==1 do
