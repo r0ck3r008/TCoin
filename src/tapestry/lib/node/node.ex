@@ -48,20 +48,28 @@ defmodule Tapestry.Node do
 
 
   @impl true
-  def handle_info({:publish, msg_hash, srvr_pid, 1000}, state) do
+  def handle_info({:publish, msg_hash, _srvr_pid, 1000}, state) do
     IO.puts "#{msg_hash} unpublished"
     {:noreply, state}
   end
 
   @impl true
   def handle_info({:publish, msg_hash, srvr_pid, hops}, {nbors, agnt_pid}) do
-    if Agent.get(agnt_pid, &Map.get(&1, msg_hash))==nil do
+    ret=Agent.get(agnt_pid, &Map.get(&1, msg_hash))
+    if ret==nil or is_pid(Enum.at(ret, 0))==false do
       Tapestry.Node.Helper.publish(nbors, agnt_pid, msg_hash, srvr_pid, hops+1)
     else
       #send to surrogate if a loop is detected
       IO.puts "sending to surrogate"
       send(elem(Enum.at(tl(nbors), 0), 1), {:publish, msg_hash, srvr_pid, hops+1})
     end
+    {:noreply, {nbors, agnt_pid}}
+  end
+
+  @impl true
+  def handle_info({:store, msg_hash, msg}, {nbors, agnt_pid}) do
+    #repurposing the agnt for storage
+    Agent.update(agnt_pid, &Map.put(&1, msg_hash, [msg]))
     {:noreply, {nbors, agnt_pid}}
   end
 
