@@ -38,7 +38,7 @@ defmodule Tapestry.Node.Helper do
       end
     else
       IO.puts "[#{elem(Enum.at(nbors, 0), 0)}] Found mapping!"
-      send(rqstr_pid, {:route_o_r, msg_hash, ret})
+      send(rqstr_pid, {:route_o_r, msg_hash, ret, hops})
     end
   end
 

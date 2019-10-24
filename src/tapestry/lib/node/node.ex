@@ -95,10 +95,10 @@ defmodule Tapestry.Node do
   end
 
   @impl true
-  def handle_info({:route_o_r, msg_hash, ret}, state) do
+  def handle_info({:route_o_r, msg_hash, ret, hops}, state) do
     IO.puts "Found object #{msg_hash}: #{
       inspect fetch_object(Enum.at(ret, 0), msg_hash)
-    }!"
+    } in #{hops} hops!"
     {:noreply, state}
   end
 
