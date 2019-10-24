@@ -12,7 +12,12 @@ defmodule Tapestry.Node.Helper do
 
   def publish(nbors, agnt_pid, msg_hash, srvr_pid, hops) do
     nbor=find_best_match(nbors, msg_hash)
-    Agent.update(agnt_pid, &Map.put(&1, msg_hash, srvr_pid))
+    state=Agent.get(agnt_pid, &Map.get(&1, msg_hash))
+    Agent.update(agnt_pid, &Map.put(
+      &1,
+      msg_hash,
+      [srvr_pid]++state
+    ))
     if elem(nbor, 1)==elem(hd(nbors), 1) do
       IO.puts "[#{elem(Enum.at(nbors, 0), 0)}] Published #{msg_hash}!"
     else
