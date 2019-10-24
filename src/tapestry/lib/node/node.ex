@@ -59,7 +59,7 @@ defmodule Tapestry.Node do
 
   @impl true
   def handle_info({:publish, msg_hash, _srvr_pid, 1000}, state) do
-    IO.puts "#{msg_hash} unpublished"
+    IO.puts "#{msg_hash} Root does not exist!"
     {:noreply, state}
   end
 
