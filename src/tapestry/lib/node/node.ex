@@ -82,10 +82,15 @@ defmodule Tapestry.Node do
     Agent.update(agnt_pid, &Map.put(&1, msg_hash, [msg]))
     {:noreply, {nbors, agnt_pid}}
   end
-
+  
   @impl true
-  def handle_info({:route_o, msg_hash, rqstr_pid}, state) do
-    Tapestry.Node.Helper.route_to_obj(msg_hash, rqstr_pid, state)
+  def handle_info({:route_o, msg_hash, _, 1000}, state) do
+    IO.puts "[#{msg_hash}] Hops exhausted!"
+    {:noreply, state}
+  end
+  @impl true
+  def handle_info({:route_o, msg_hash, rqstr_pid, hops}, state) do
+    Tapestry.Node.Helper.route_to_obj(msg_hash, hops+1, rqstr_pid, state)
     {:noreply, state}
   end
 

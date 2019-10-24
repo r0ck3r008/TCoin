@@ -26,7 +26,7 @@ defmodule Tapestry.Node.Helper do
     end
   end
 
-  def route_to_obj(msg_hash, rqstr_pid, {nbors, agnt_pid}) do
+  def route_to_obj(msg_hash, hops, rqstr_pid, {nbors, agnt_pid}) do
     ret=Agent.get(agnt_pid, &Map.get(&1, msg_hash))
     if ret==nil do
       nbor=find_best_match(nbors, msg_hash)
@@ -34,7 +34,7 @@ defmodule Tapestry.Node.Helper do
         IO.puts "[#{elem(nbor, 0)}] I seem to be root, object looks unpublished!"
       else
         IO.puts "[#{elem(Enum.at(nbors, 0), 0)}] Mapping not found!"
-        send(elem(nbor, 1), {:route_o, msg_hash, rqstr_pid})
+        send(elem(nbor, 1), {:route_o, msg_hash, rqstr_pid, hops})
       end
     else
       IO.puts "[#{elem(Enum.at(nbors, 0), 0)}] Found mapping!"
