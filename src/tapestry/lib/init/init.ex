@@ -26,7 +26,7 @@ defmodule Tapestry.Init do
     nbors_done?(disp_pid, Tapestry.Dispenser.fetch_assigned(disp_pid))
 
     IO.puts("Publishing!")
-    Tapestry.Dolr.publish(Enum.at(nodes, Salty.Random.uniform(length(nodes))), "YOLO!")
+    Tapestry.Dolr.publish("HELLO", Enum.at(nodes, Salty.Random.uniform(length(nodes))))
   end
 
   def nbors_done?(_disp_pid, 0), do: :ok
