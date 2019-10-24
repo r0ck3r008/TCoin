@@ -22,6 +22,10 @@ defmodule Tapestry.Node do
       })
   end
 
+  def fetch_object(srvr_pid, msg_hash) do
+    GenServer.call(srvr_pid, {:fetch, msg_hash})
+  end
+
   #callbacks
   @impl true
   def init(agnt_pid) do
@@ -40,12 +44,18 @@ defmodule Tapestry.Node do
 
   @impl true
   def handle_cast({:update_nbors, nbors}, {hash, agnt_pid}) do
-    #remove self
     nbors=[{hash, self()}]++nbors
     IO.inspect nbors
     {:noreply, {nbors, agnt_pid}}
   end
 
+  @impl true
+  def handle_call({:fetch, msg_hash}, _from, {nbors, agnt_pid}) do
+    {:reply,
+      Agent.get(agnt_pid, &Map.get(&1, msg_hash)),
+      {nbors, agnt_pid}
+    }
+  end
 
   @impl true
   def handle_info({:publish, msg_hash, _srvr_pid, 1000}, state) do
@@ -71,6 +81,32 @@ defmodule Tapestry.Node do
     #repurposing the agnt for storage
     Agent.update(agnt_pid, &Map.put(&1, msg_hash, [msg]))
     {:noreply, {nbors, agnt_pid}}
+  end
+
+  @impl true
+  def handle_info({:route_o, msg_hash, rqstr_pid}, {nbors, agnt_pid}) do
+    ret=Agent.get(agnt_pid, &Map.get(&1, msg_hash))
+    if ret==nil do
+      nbor=Tapestry.Node.Helper.find_best_match(nbors, msg_hash)
+      if elem(nbor, 1)==self() do
+        IO.puts "[#{elem(nbor, 0)}] I seem to be root, the object is unpublished!"
+      else
+        IO.puts "[#{elem(Enum.at(nbors, 0), 0)}] Mapping not found!"
+        send(elem(nbor, 1), {:route_o, msg_hash, rqstr_pid})
+      end
+    else
+      IO.puts "[#{elem(Enum.at(nbors, 0), 0)}] Found mapping!"
+      send(rqstr_pid, {:route_o_r, msg_hash, ret})
+    end
+    {:noreply, {nbors, agnt_pid}}
+  end
+
+  @impl true
+  def handle_info({:route_o_r, msg_hash, ret}, state) do
+    IO.puts "Found object #{msg_hash}: #{
+      inspect fetch_object(Enum.at(ret, 0), msg_hash)
+    }!"
+    {:noreply, state}
   end
 
   @impl true
