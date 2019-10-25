@@ -114,18 +114,18 @@ defmodule Tapestry.Node.Helper do
     ret=Agent.get(agnt_pid, &Map.get(&1, msg_hash))
     if ret==nil do
       nbor=find_best_match(nbors, msg_hash)
-      if elem(nbor, 1)==self() do
-        IO.puts "[#{elem(nbor, 0)}] I seem to be root, object looks unpublished!"
+      if elem(Enum.at(nbor, 0), 1)==self() do
+        IO.puts "[#{elem(Enum.at(nbor, 0), 0)}] I seem to be root, object looks unpublished!"
       else
-        IO.puts "[#{elem(Enum.at(nbors, 0), 0)}] Mapping not found!"
-        send(elem(nbor, 1), {:route_o, msg_hash, rqstr_pid, hops})
+        IO.puts "[#{elem(Enum.at(hd(nbors), 0), 0)}] Mapping not found!"
+        lvl_send(nbor, {:route_o, msg_hash, rqstr_pid, hops})
       end
     else
-      IO.puts "[#{elem(Enum.at(nbors, 0), 0)}] Found mapping!"
+      IO.puts "[#{elem(Enum.at(hd(nbors), 0), 0)}] Found mapping!"
       if Enum.at(ret, 0)==self() do
         #When the requestor is the one having mapping within
         #display found obj and dont send a msg as it will cause a deadlock
-        IO.puts "[#{elem(hd(nbors), 0)}] Found mapping within myself! Object is: #{Enum.at(ret, 1)}"
+        IO.puts "[#{elem(Enum.at(hd(nbors), 0), 0)}] Found mapping within myself! Object is: #{Enum.at(ret, 1)}"
       else
         send(rqstr_pid, {:route_o_r, msg_hash, ret, hops})
       end

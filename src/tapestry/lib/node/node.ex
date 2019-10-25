@@ -105,7 +105,7 @@ defmodule Tapestry.Node do
 
   ###########route to object related##########
   @impl true
-  def handle_info({:route_o, msg_hash, _, 1000}, state) do
+  def handle_info({:route_o, msg_hash, _, 5}, state) do
     IO.puts "[#{msg_hash}] Hops exhausted!"
     {:noreply, state}
   end
