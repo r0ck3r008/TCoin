@@ -18,9 +18,9 @@ defmodule Tapestry.Dolr do
   #3. At any given intermidiatary node, next hop is calculated by matching in the respective nbor table
   #   and calculating the match level. Then the same route_n msg is sent to next node
   #   untill either the dest node receives it, or hops are exhausted
-  def route_to_node(src_pid, dest_pid) do
+  def route_to_node(src_pid, dest_pid, acc_pid) do
     dest_hash=Tapestry.Node.Helper.hash_it(inspect dest_pid)
-    send(src_pid, {:route_n, dest_hash, src_pid, 0})
+    send(src_pid, {:route_n, dest_hash, src_pid, acc_pid, 0})
   end
 
   def unpublish(msg, srvr_pid) do

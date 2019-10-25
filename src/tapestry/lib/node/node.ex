@@ -55,7 +55,7 @@ defmodule Tapestry.Node do
 
   @impl true
   def handle_cast({:update_nbors, nbors}, {hash, agnt_pid}) do
-    nbors=[{hash, self()}]++nbors
+    nbors=[[{hash, self()}]]++nbors
     IO.inspect nbors
     {:noreply, {nbors, agnt_pid}}
   end
@@ -173,31 +173,31 @@ defmodule Tapestry.Node do
 
   #########route to node related##########
   @impl true
-  def handle_info({:route_n, dest_hash, src_pid, 1000}, state) do
-    src_hash=Tapestry.Node.Helper.hash_it(inspect src_pid)
-    IO.puts "Hops exhausted for route to #{dest_hash} from #{src_hash}"
+  def handle_info({:route_n, _dest_hash, _src_pid, _acc_pid, 5}, state) do
     {:noreply, state}
   end
 
   @impl true
-  def handle_info({:route_n, dest_hash, src_pid, hops}, {nbors, agnt_pid}) do
-    {hop_hash, hop_pid}=Tapestry.Node.Helper.next_hop(nbors, dest_hash)
-    if hop_pid==self() do
+  def handle_info({:route_n, dest_hash, src_pid, acc_pid, hops}, {nbors, agnt_pid}) do
+    lvl=Tapestry.Node.Helper.next_hop(nbors, dest_hash)
+    if elem(Enum.at(lvl, 0), 1)==self() do
       if self() != src_pid do
-        send(src_pid, {:route_n_r, hops})
+        send(src_pid, {:route_n_r, acc_pid, hops})
       else
         IO.puts "I tried reaching myself, took #{hops} hops!"
       end
     else
-      IO.puts "[#{elem(hd(nbors), 0)}] Hopping to #{hop_hash}!"
-      send(hop_pid, {:route_n, dest_hash, src_pid, hops+1})
+      Tapestry.Node.Helper.lvl_send(lvl, {:route_n, dest_hash, src_pid, acc_pid, hops+1})
     end
     {:noreply, {nbors, agnt_pid}}
   end
 
   @impl true
-  def handle_info({:route_n_r, hops}, state) do
-    IO.puts "Reached in #{hops} hops!"
+  def handle_info({:route_n_r, acc_pid, hops}, state) do
+    acc=Agent.get(acc_pid, fn(acc)-> acc end)
+    if acc==[] do
+      Agent.update(acc_pid, &(&1++[hops]))
+    end
     {:noreply, state}
   end
   ##########route to node related##########

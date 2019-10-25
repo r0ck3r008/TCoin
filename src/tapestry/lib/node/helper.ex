@@ -9,6 +9,24 @@ defmodule Tapestry.Node.Helper do
 
   def remove_deadlocks(_num, _disp_pid, 0), do: :ok
   def remove_deadlocks(num, disp_pid, _dlta), do: remove_deadlocks(num, disp_pid, num-Tapestry.Dispenser.fetch_assigned(disp_pid))
+
+  def lvl_send(lvl, msg) do
+    Enum.map(
+      lvl,
+      fn({_hash, pid})->
+        if is_nil(pid)==false, do: send(pid, msg)
+      end
+    )
+  end
+
+  def nil_lvl?(lvl, len) do
+    list=for _x<-0..len-1, do: {nil, nil}
+    if lvl==list do
+      true
+    else
+      false
+    end
+  end
   ##########Helper functions##########
 
   ##########Publish related##########
@@ -133,12 +151,12 @@ defmodule Tapestry.Node.Helper do
   ##########unpublish related##########
 
   ##########route to node related##########
-  def next_hop([{self_hash, self_pid} | rest], dest_hash) do
+  def next_hop([[{self_hash, self_pid}] | rest], dest_hash) do
     if self_hash==dest_hash do
-      {self_hash, self_pid}
+      [{self_hash, self_pid}]
     else
       nbor=Enum.at(rest, find_match_lvl(self_hash, dest_hash, 0))
-      if is_nil(elem(nbor, 0)) do
+      if nil_lvl?(nbor, String.length(self_hash))==true do
         Enum.at(rest, 0)
       else
         nbor

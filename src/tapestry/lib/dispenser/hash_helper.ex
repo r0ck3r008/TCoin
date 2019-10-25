@@ -6,7 +6,13 @@ defmodule Tapestry.Dispenser.Hash_helper do
     hashes=for {key, _}<-map, do: key
 
     matches=for x<-0..String.length(hash)-1, do: make_nbor_tbl(hashes, hash, x)
-    nbors=Enum.map(matches, fn(x)->{x, map[x]} end)
+    nbors=Enum.map(
+      matches,
+      fn(x)-> Enum.map(
+        x,
+        fn(y)-> {y, map[y]} end
+      ) end
+    )
     GenServer.cast(disp_pid, :dec_assigned)
     nbors
     end
@@ -21,9 +27,17 @@ defmodule Tapestry.Dispenser.Hash_helper do
     )
     #remove nil if matches has at least 1 match
     matches=if matches != [nil], do: matches--[nil], else: [nil]
-    match=Enum.at(matches, :rand.uniform(length(matches))-1)
-    #dont match the same hash
-    if match == hash, do: nil, else: match
+    #the new 8 backup list match
+    len=length(matches)
+    if len != 8 do
+      if len<8 do
+        matches++(for _x<-length(matches)..7, do: nil)
+      else
+        for x<-0..7, do: Enum.at(matches, x)
+      end
+    else
+      matches
+    end
   end
 
 end
