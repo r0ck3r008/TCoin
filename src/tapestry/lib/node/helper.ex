@@ -41,7 +41,12 @@ defmodule Tapestry.Node.Helper do
       IO.puts "[#{elem(hd(nbors), 0)}] Root node found for the newbie!"
     else
       IO.puts "[#{elem(hd(nbors), 0)}] Propagating newbie"
-      send(elem(nbor,1 ), {:add_n, node_hash, node_pid, hops})
+      #send to surrogate for every 100th hop to circumvent loops
+      if rem(hops, 100)!=0 do
+        send(elem(nbor,1 ), {:add_n, node_hash, node_pid, hops})
+      else
+        send(elem(Enum.at(nbors, 1), 1), {:add_n, node_hash, node_pid, hops})
+      end
     end
     #send warm welcome if not self
     if node_pid != self() do
