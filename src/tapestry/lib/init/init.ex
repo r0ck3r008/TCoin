@@ -1,6 +1,6 @@
 defmodule Tapestry.Init do
 
-  def main(n, req, _failPercent) do
+  def main(n, _req, _failPercent) do
     #start dispenser
     {:ok, disp_pid}=Tapestry.Dispenser.start_link
 
@@ -8,7 +8,8 @@ defmodule Tapestry.Init do
     nodes=for _x<-0..n-1, do: Tapestry.Node.start_link
     tasks=for {_, pid}<-nodes, do: Task.async(fn-> task_fn(pid, n, disp_pid, 0) end)
     :timer.sleep(1000)
-    dolr_call(disp_pid, Enum.map(nodes, fn({:ok, pid})-> pid end), req)
+    #    dolr_call(disp_pid, Enum.map(nodes, fn({:ok, pid})-> pid end), req)
+    dolr_publish(disp_pid, Enum.map(nodes, fn({:ok, pid})-> pid end))
     #makes main never exit
     for task<-tasks, do: Task.await(task, :infinity)
   end
@@ -20,6 +21,13 @@ defmodule Tapestry.Init do
   def task_fn(pid, n, disp_pid, count) do
     :timer.sleep(1000)
     task_fn(pid, n, disp_pid, count)
+  end
+
+  def dolr_publish(disp_pid, nodes) do
+    nbors_done?(disp_pid, Tapestry.Dispenser.fetch_assigned(disp_pid))
+    publisher=Enum.at(nodes, :rand.uniform(length(nodes))-1)
+    Tapestry.Dolr.publish("HELLO", publisher)
+    IO.puts "Publish success!"
   end
 
   def dolr_call(disp_pid, nodes, req) do

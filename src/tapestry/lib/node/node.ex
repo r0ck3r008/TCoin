@@ -86,8 +86,7 @@ defmodule Tapestry.Node do
 
   ###########publish related##########
   @impl true
-  def handle_info({:publish, msg_hash, _srvr_pid, 1000}, state) do
-    IO.puts "#{msg_hash} Root does not exist!"
+  def handle_info({:publish, _msg_hash, _srvr_pid, 6}, state) do
     {:noreply, state}
   end
 
@@ -98,8 +97,7 @@ defmodule Tapestry.Node do
       Tapestry.Node.Helper.publish(nbors, agnt_pid, msg_hash, srvr_pid, hops+1)
     else
       #send to surrogate if a loop is detected
-      IO.puts "sending to surrogate"
-      send(elem(Enum.at(nbors, 1), 1), {:publish, msg_hash, srvr_pid, hops+1})
+      Tapestry.Node.Helper.lvl_send(Enum.at(nbors, 1), {:publish, msg_hash, srvr_pid, hops+1})
     end
     {:noreply, {nbors, agnt_pid}}
   end

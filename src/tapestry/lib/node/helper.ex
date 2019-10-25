@@ -38,11 +38,11 @@ defmodule Tapestry.Node.Helper do
       msg_hash,
       [srvr_pid]++state
     ))
-    if elem(nbor, 1)==elem(hd(nbors), 1) do
-      IO.puts "[#{elem(Enum.at(nbors, 0), 0)}] Published #{msg_hash}!"
+    if elem(Enum.at(nbor, 0), 1)==self() do
+      IO.puts "[#{elem(Enum.at(hd(nbors), 0), 0)}] Published #{msg_hash}!"
     else
-      IO.puts "[#{elem(Enum.at(nbors, 0), 0)}] Publishing #{msg_hash}!"
-      send(elem(nbor, 1), {:publish, msg_hash, srvr_pid, hops})
+      IO.puts "[#{elem(Enum.at(hd(nbors), 0), 0)}] Publishing #{msg_hash}!"
+      lvl_send(nbor, {:publish, msg_hash, srvr_pid, hops})
     end
   end
   ###########Publish related##########
@@ -167,13 +167,13 @@ defmodule Tapestry.Node.Helper do
   ##########route to node related##########
 
   ##########general routing related##########
-  def find_best_match([{self_hash, self_pid} | rest], msg_hash) do
+  def find_best_match([[{self_hash, self_pid}] | rest], msg_hash) do
     diff=elem(Integer.parse(msg_hash, 16),0)-elem(Integer.parse(self_hash, 16), 0)
     if diff==1 do
-      {self_hash, self_pid}
+      [{self_hash, self_pid}]
     else
       nbor=Enum.at(rest, find_match_lvl(self_hash, msg_hash, 0))
-      if is_nil(elem(nbor, 0)) do
+      if nil_lvl?(nbor, String.length(self_hash))==true do
         Enum.at(rest, 0)
       else
         nbor
