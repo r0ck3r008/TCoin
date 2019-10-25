@@ -1,6 +1,6 @@
 defmodule Tapestry.Init do
 
-  def main(n) do
+  def main(n, _req, _failPercent) do
     #start dispenser
     {:ok, disp_pid}=Tapestry.Dispenser.start_link
 
