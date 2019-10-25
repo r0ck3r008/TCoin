@@ -139,13 +139,13 @@ defmodule Tapestry.Node.Helper do
     ret=Agent.get(agnt_pid, &Map.get(&1, msg_hash))
     if ret != nil do
       #delete whatever you have and send to nbor
-      IO.puts "[#{elem(hd(nbors), 0)}] Removing mapping #{msg_hash}!"
+      IO.puts "[#{elem(Enum.at(hd(nbors), 0), 0)}] Removing mapping #{msg_hash}!"
       Agent.update(agnt_pid, &Map.delete(&1, msg_hash))
       nbor=find_best_match(nbors, msg_hash)
-      send(elem(nbor, 1), {:unpublish, msg_hash, hops})
+      lvl_send(nbor, {:unpublish, msg_hash, hops})
     else
       #send to a surrogate
-      send(elem(Enum.at(nbors, 1), 1), {:unpublish, msg_hash, hops})
+      lvl_send(Enum.at(nbors, 1), {:unpublish, msg_hash, hops})
     end
   end
   ##########unpublish related##########

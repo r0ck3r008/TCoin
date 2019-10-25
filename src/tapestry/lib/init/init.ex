@@ -31,6 +31,12 @@ defmodule Tapestry.Init do
     :timer.sleep(3000)
     IO.puts "Finding now"
     Tapestry.Dolr.route_to_obj("HELLO", rqstr)
+    :timer.sleep(2000)
+    IO.puts "Unpublishing now"
+    Tapestry.Dolr.unpublish("HELLO", publisher)
+    :timer.sleep(2000)
+    IO.puts "Trying to find after unpublishing!"
+    Tapestry.Dolr.route_to_obj("HELLO", rqstr)
   end
 
   def dolr_call(disp_pid, nodes, req) do

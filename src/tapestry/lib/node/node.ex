@@ -129,7 +129,7 @@ defmodule Tapestry.Node do
 
   ###########Unpublish related##########
   @impl true
-  def handle_info({:unpublish, _, 1000}, state) do
+  def handle_info({:unpublish, _, 5}, state) do
     IO.puts "Best possible unpublish attempt terminating!"
     {:noreply, state}
   end
