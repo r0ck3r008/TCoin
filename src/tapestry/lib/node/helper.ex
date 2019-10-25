@@ -2,8 +2,7 @@ defmodule Tapestry.Node.Helper do
 
   ##########Helper functions##########
   def hash_it(msg) do
-    Salty.Hash.Sha256.hash(msg)
-    |> elem(1)
+    :crypto.hash(:sha, msg)
     |> Base.encode16()
     |> String.slice(0, 8)
   end
@@ -132,6 +131,22 @@ defmodule Tapestry.Node.Helper do
     end
   end
   ##########unpublish related##########
+
+  ##########route to node related##########
+  def next_hop([{self_hash, self_pid} | rest], dest_hash) do
+    if self_hash==dest_hash do
+      {self_hash, self_pid}
+    else
+      nbor=Enum.at(rest, find_match_lvl(self_hash, dest_hash, 0))
+      if is_nil(elem(nbor, 0)) do
+        Enum.at(rest, 0)
+      else
+        nbor
+      end
+    end
+  end
+
+  ##########route to node related##########
 
   ##########general routing related##########
   def find_best_match([{self_hash, self_pid} | rest], msg_hash) do
