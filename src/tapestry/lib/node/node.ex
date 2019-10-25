@@ -22,6 +22,11 @@ defmodule Tapestry.Node do
       })
   end
 
+  def update_route(of, node_hash) do
+    GenServer.cast(of, {:assign_hash, node_hash})
+    GenServer.cast(of, {:update_nbors, []})
+  end
+
   def fetch_object(srvr_pid, msg_hash) do
     GenServer.call(srvr_pid, {:fetch, msg_hash})
   end
@@ -41,6 +46,11 @@ defmodule Tapestry.Node do
         agnt_pid
       }
     }
+  end
+
+  @impl true
+  def handle_cast({:assign_hash, hash}, agnt_pid) do
+    {:noreply, {hash, agnt_pid}}
   end
 
   @impl true
@@ -127,6 +137,28 @@ defmodule Tapestry.Node do
     {:noreply, state}
   end
   ###########Unpublish related##########
+
+  ##########new node Related#########
+  @impl true
+  def handle_info({:add_n, node_hash, _, 1000}, state) do
+    IO.puts "New node #{node_hash} published!"
+    {:noreply, state}
+  end
+
+  @impl true
+  def handle_info({:add_n, node_hash, node_pid, hops}, {nbors, agnt_pid}) do
+    new_nbors=Tapestry.Node.Helper.add_node(node_hash, node_pid, hops+1, {nbors, agnt_pid})
+    new_nbors=if new_nbors==nil, do: nbors, else: new_nbors
+    {:noreply, {new_nbors, agnt_pid}}
+  end
+
+  @impl true
+  def handle_info({:welcome, sndr_hash, sndr_pid}, {nbors, agnt_pid}) do
+    new_nbors=Tapestry.Node.Helper.handle_welcome(sndr_hash, sndr_pid, nbors)
+    new_nbors=if new_nbors==nil, do: nbors, else: new_nbors
+    {:noreply, {new_nbors, agnt_pid}}
+  end
+  ##########new node related
 
   @impl true
   def terminate(_, {nbors, _}) do
