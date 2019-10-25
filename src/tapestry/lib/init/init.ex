@@ -39,6 +39,12 @@ defmodule Tapestry.Init do
     :timer.sleep(2000)
     #find
     Tapestry.Dolr.route_to_obj("Hello", rqstr2)
+    :timer.sleep(1500)
+    #add node
+    {:ok, node_pid}=Tapestry.Node.start_link
+    node_hash=Tapestry.Node.Helper.hash_it(inspect node_pid)
+    Tapestry.Node.update_route(node_pid, node_hash)
+    Tapestry.Dolr.add_node(node_pid, node_hash, rqstr1)
   end
 
   def nbors_done?(_disp_pid, 0), do: :ok
