@@ -55,7 +55,7 @@ defmodule Tapestry.Node.Helper do
     if elem(Enum.at(rest, match_lvl), 0)==nil do
       #update safely
       rest=List.delete_at(rest, match_lvl)
-      List.insert_at(rest, match_lvl, {node_hash, node_pid})
+      [self_map]++List.insert_at(rest, match_lvl, {node_hash, node_pid})
     else
       nil
     end
@@ -70,16 +70,16 @@ defmodule Tapestry.Node.Helper do
     end
   end
 
-  def handle_welcome(sndr_hash, sndr_pid, [{self_hash, _self_pid}|rest]) do
+  def handle_welcome(sndr_hash, sndr_pid, [{self_hash, self_pid}|rest]) do
     match_lvl=find_match_lvl(self_hash, sndr_hash, 0)
     if rest==[] do
       rest=for _x<-0..String.length(self_hash)-1, do: {nil, nil}
       rest=List.delete_at(rest, match_lvl)
-      List.insert_at(rest, match_lvl, {sndr_hash, sndr_pid})
+      [{self_hash, self_pid}]++List.insert_at(rest, match_lvl, {sndr_hash, sndr_pid})
     else
       if elem(Enum.at(rest, match_lvl), 0)==nil do
         rest=List.delete_at(rest, match_lvl)
-        List.insert_at(rest, match_lvl, {sndr_hash, sndr_pid})
+        [{self_hash, self_pid}]++List.insert_at(rest, match_lvl, {sndr_hash, sndr_pid})
       else
         nil
       end
