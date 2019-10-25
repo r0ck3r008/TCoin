@@ -77,6 +77,11 @@ defmodule Tapestry.Node do
       {nbors, agnt_pid}
     }
   end
+
+  @impl true
+  def handle_call(:get_state, _from, state) do
+    {:reply, state, state}
+  end
   ###########Calls##########
 
   ###########publish related##########
@@ -140,8 +145,14 @@ defmodule Tapestry.Node do
 
   ##########new node Related#########
   @impl true
-  def handle_info({:add_n, node_hash, _, 1000}, state) do
+  def handle_info({:add_n, node_hash, node_pid, 1000}, state) do
     IO.puts "New node #{node_hash} published!"
+    IO.puts "New nbor tbl:"
+    if node_pid != self() do
+      IO.inspect GenServer.call(node_pid, :get_state)
+    else
+      IO.inspect state
+    end
     {:noreply, state}
   end
 
