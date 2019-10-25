@@ -56,7 +56,7 @@ defmodule Tapestry.Node do
   @impl true
   def handle_cast({:update_nbors, nbors}, {hash, agnt_pid}) do
     nbors=[[{hash, self()}]]++nbors
-    IO.inspect nbors
+    #    IO.inspect nbors
     {:noreply, {nbors, agnt_pid}}
   end
 
@@ -194,17 +194,9 @@ defmodule Tapestry.Node do
 
   @impl true
   def handle_info({:route_n_r, acc_pid, hops}, state) do
-    acc=Agent.get(acc_pid, fn(acc)-> acc end)
-    if acc==[] do
-      Agent.update(acc_pid, &(&1++[hops]))
-    end
+    Agent.update(acc_pid, &(Enum.uniq(&1++[hops])))
     {:noreply, state}
   end
   ##########route to node related##########
-
-  @impl true
-  def terminate(_, {nbors, _}) do
-    IO.puts "Terminating Node #{elem(hd(nbors), 0)}"
-  end
 
 end
