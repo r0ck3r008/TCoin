@@ -13,7 +13,6 @@ defmodule Tapestry.Dispenser.Hash_helper do
   def make_nbor_tbl(hashes, hash, nbor_lvl) do
     sub_hash=String.slice(hash, 0, nbor_lvl)
 
-    #TODO allow nil when there is no match at all
     matches=Enum.uniq(
       Enum.map(
         hashes,
@@ -22,7 +21,7 @@ defmodule Tapestry.Dispenser.Hash_helper do
     )
     #remove nil if matches has at least 1 match
     matches=if matches != [nil], do: matches--[nil], else: [nil]
-    match=Enum.at(matches, Salty.Random.uniform(length(matches)))
+    match=Enum.at(matches, :rand.uniform(length(matches))-1)
     #dont match the same hash
     if match == hash, do: nil, else: match
   end
