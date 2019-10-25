@@ -11,6 +11,18 @@ defmodule Tapestry.Dolr do
     send(rqstr_pid, {:route_o, msg_hash, rqstr_pid, 0})
   end
 
+  #NOTE
+  #The basic algorithm of route to node is:
+  #1. Routing to a node requires the destination as well as source pids to be provided
+  #2. The messages send within contain the destination_hash, the src_pid and the number of hops
+  #3. At any given intermidiatary node, next hop is calculated by matching in the respective nbor table
+  #   and calculating the match level. Then the same route_n msg is sent to next node
+  #   untill either the dest node receives it, or hops are exhausted
+  def route_to_node(src_pid, dest_pid) do
+    dest_hash=Tapestry.Node.Helper.hash_it(inspect dest_pid)
+    send(src_pid, {:route_n, dest_hash, src_pid, 0})
+  end
+
   def unpublish(msg, srvr_pid) do
     msg_hash=Tapestry.Node.Helper.hash_it(msg)
     send(srvr_pid, {:unpublish, msg_hash, 0})
@@ -23,7 +35,7 @@ defmodule Tapestry.Dolr do
   #2. Whenevr a node receives notification that a new node has joined network, it sends it a welcome message
   #   the new node can decide to add the welcome message's sender in its own nbor table nor not
   #3. While the new node notification is received by any node, it checks weather it has previously published
-  #   an object or a mapping of whose this new node can be root of, if yes, it unpublishes it, then republishes it
+  #   an object or a mapping of whose this new node can be root of, if yes, then republishes it but
   #   with a lesser number of hops
   def add_node(node_pid, node_hash, entry_point_pid) do
     #publishes that node's existance
