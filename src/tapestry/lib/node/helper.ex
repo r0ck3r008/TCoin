@@ -27,6 +27,24 @@ defmodule Tapestry.Node.Helper do
       false
     end
   end
+
+  def not_in_lvl?(lvl, node_hash) do
+    hashes=Enum.map(lvl, fn({hash, _})-> hash end)
+    if node_hash not in hashes do
+      true
+    else
+      false
+    end
+  end
+
+  def place_in_lvl?(lvl) do
+    hashes=Enum.map(lvl, fn({hash, _})-> hash end)
+    if nil in hashes do
+      true
+    else
+      false
+    end
+  end
   ##########Helper functions##########
 
   ##########Publish related##########
@@ -54,33 +72,38 @@ defmodule Tapestry.Node.Helper do
     new_nbors=update_nbor_table(node_hash, node_pid, nbors)
     #unpublish and then publish a revelent object
     update_obj_mapping(nbors, node_hash, agnt_pid)
-    if elem(nbor, 1)==self() do
-      IO.puts "[#{elem(hd(nbors), 0)}] Root node found for the newbie!"
+    if elem(Enum.at(nbor, 0), 1)==self() do
+      IO.puts "[#{elem(Enum.at(hd(nbors), 0), 0)}] Root node found for the newbie!"
     else
-      IO.puts "[#{elem(hd(nbors), 0)}] Propagating newbie"
       #send to surrogate for every 100th hop to circumvent loops
       if rem(hops, 100)!=0 do
-        send(elem(nbor,1 ), {:add_n, node_hash, node_pid, hops})
+        lvl_send(nbor, {:add_n, node_hash, node_pid, hops})
       else
-        send(elem(Enum.at(nbors, 1), 1), {:add_n, node_hash, node_pid, hops})
+        lvl_send(Enum.at(nbors, 1), {:add_n, node_hash, node_pid, hops})
       end
     end
     #send warm welcome if not self
     if node_pid != self() do
-      send(node_pid, {:welcome, elem(hd(nbors), 0), self()})
+      send(node_pid, {:welcome, elem(Enum.at(hd(nbors), 0), 0), self()})
     end
     new_nbors
   end
 
   def update_nbor_table(node_hash, node_pid, [self_map|rest]) do
-    match_lvl=find_match_lvl(elem(self_map, 0), node_hash, 0)
-    if elem(Enum.at(rest, match_lvl), 0)==nil do
+    match_lvl=find_match_lvl(elem(Enum.at(self_map, 0), 0), node_hash, 0)
+    level=Enum.at(rest, match_lvl)
+    if not_in_lvl?(level, node_hash)==true and place_in_lvl?(level)==true do
       #update safely
-      rest=List.delete_at(rest, match_lvl)
-      [self_map]++List.insert_at(rest, match_lvl, {node_hash, node_pid})
+      rest=List.delete(rest, match_lvl)
+      rest=List.insert_at(rest, match_lvl, update_lvl(level, node_hash, node_pid))
+      [self_map]++rest
     else
       nil
     end
+  end
+
+  def update_lvl(lvl, node_hash, node_pid) do
+    (lvl--[{nil, nil}])++[{node_hash, node_pid}]
   end
 
   def update_obj_mapping([_self_map|rest], node_hash, agnt_pid) do
@@ -88,23 +111,28 @@ defmodule Tapestry.Node.Helper do
     ret=Agent.get(agnt_pid, &Map.get(&1, hash_to_find))
     if ret != nil do
       #publish via surrogate
-      send(elem(Enum.at(rest, 0), 1), {:publish, hash_to_find, hd(ret), 100})
+      lvl_send(Enum.at(rest, 0), {:publish, hash_to_find, hd(ret), 1})
     end
   end
 
-  def handle_welcome(sndr_hash, sndr_pid, [{self_hash, self_pid}|rest]) do
+  def handle_welcome(sndr_hash, sndr_pid, [[{self_hash, self_pid}]|rest]) do
+    rest=if rest==[[]], do: create_empty_nbor_table(String.length(sndr_hash)), else: rest
+
     match_lvl=find_match_lvl(self_hash, sndr_hash, 0)
-    if rest==[] do
-      rest=for _x<-0..String.length(self_hash)-1, do: {nil, nil}
-      rest=List.delete_at(rest, match_lvl)
-      [{self_hash, self_pid}]++List.insert_at(rest, match_lvl, {sndr_hash, sndr_pid})
+    level=Enum.at(rest, match_lvl)
+    if not_in_lvl?(level, sndr_hash)==true and place_in_lvl?(level)==true do
+      rest=List.delete(rest, match_lvl)
+      rest=List.insert_at(rest, match_lvl, update_lvl(level, sndr_hash, sndr_pid))
+      [[{self_hash, self_pid}]]++rest
     else
-      if elem(Enum.at(rest, match_lvl), 0)==nil do
-        rest=List.delete_at(rest, match_lvl)
-        [{self_hash, self_pid}]++List.insert_at(rest, match_lvl, {sndr_hash, sndr_pid})
-      else
-        nil
-      end
+      nil
+    end
+  end
+
+  def create_empty_nbor_table(length) do
+    IO.puts "creating"
+    for _x<-0..length-1 do
+      for _y<-0..length-1, do: {nil, nil}
     end
   end
   ##########new node related###########

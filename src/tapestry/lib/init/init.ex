@@ -25,18 +25,23 @@ defmodule Tapestry.Init do
 
   def dolr_publish(disp_pid, nodes) do
     nbors_done?(disp_pid, Tapestry.Dispenser.fetch_assigned(disp_pid))
-    publisher=Enum.at(nodes, :rand.uniform(length(nodes))-1)
-    rqstr=Enum.at(nodes, :rand.uniform(length(nodes))-1)
+    rqstr_1=Enum.at(nodes, :rand.uniform(length(nodes))-1)
+    rqstr_2=Enum.at(nodes, :rand.uniform(length(nodes))-1)
+    {:ok, publisher}=Tapestry.Node.start_link
+    publisher_hash=Tapestry.Node.Helper.hash_it(inspect publisher)
+    Tapestry.Node.update_route(publisher, publisher_hash)
+    Tapestry.Dolr.add_node(publisher, publisher_hash, rqstr_1)
+    :timer.sleep(3000)
     Tapestry.Dolr.publish("HELLO", publisher)
     :timer.sleep(3000)
     IO.puts "Finding now"
-    Tapestry.Dolr.route_to_obj("HELLO", rqstr)
+    Tapestry.Dolr.route_to_obj("HELLO", rqstr_2)
     :timer.sleep(2000)
     IO.puts "Unpublishing now"
     Tapestry.Dolr.unpublish("HELLO", publisher)
     :timer.sleep(2000)
     IO.puts "Trying to find after unpublishing!"
-    Tapestry.Dolr.route_to_obj("HELLO", rqstr)
+    Tapestry.Dolr.route_to_obj("HELLO", rqstr_1)
   end
 
   def dolr_call(disp_pid, nodes, req) do

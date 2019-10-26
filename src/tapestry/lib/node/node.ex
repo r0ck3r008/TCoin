@@ -24,7 +24,7 @@ defmodule Tapestry.Node do
 
   def update_route(of, node_hash) do
     GenServer.cast(of, {:assign_hash, node_hash})
-    GenServer.cast(of, {:update_nbors, []})
+    GenServer.cast(of, {:update_nbors, [[]]})
   end
 
   def fetch_object(srvr_pid, msg_hash) do
@@ -143,7 +143,7 @@ defmodule Tapestry.Node do
 
   ##########new node Related#########
   @impl true
-  def handle_info({:add_n, node_hash, node_pid, 1000}, state) do
+  def handle_info({:add_n, node_hash, node_pid, 5}, state) do
     IO.puts "New node #{node_hash} published!"
     IO.puts "New nbor tbl:"
     if node_pid != self() do
