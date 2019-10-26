@@ -19,7 +19,6 @@ defmodule Tapestry.MixProject do
 
   defp deps do
     [
-      {:salty, "~> 0.1.3", hex: :libsalty}
     ]
   end
 end
