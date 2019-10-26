@@ -105,8 +105,7 @@ defmodule Tapestry.Node do
 
   ###########route to object related##########
   @impl true
-  def handle_info({:route_o, msg_hash, _, 5}, state) do
-    IO.puts "[#{msg_hash}] Hops exhausted!"
+  def handle_info({:route_o, _msg_hash, _, 5}, state) do
     {:noreply, state}
   end
   @impl true
@@ -130,7 +129,6 @@ defmodule Tapestry.Node do
   ###########Unpublish related##########
   @impl true
   def handle_info({:unpublish, _, 5}, state) do
-    IO.puts "Best possible unpublish attempt terminating!"
     {:noreply, state}
   end
 
@@ -143,14 +141,7 @@ defmodule Tapestry.Node do
 
   ##########new node Related#########
   @impl true
-  def handle_info({:add_n, node_hash, node_pid, 5}, state) do
-    IO.puts "New node #{node_hash} published!"
-    IO.puts "New nbor tbl:"
-    if node_pid != self() do
-      IO.inspect GenServer.call(node_pid, :get_state)
-    else
-      IO.inspect state
-    end
+  def handle_info({:add_n, _node_hash, _node_pid, 5}, state) do
     {:noreply, state}
   end
 
@@ -180,7 +171,9 @@ defmodule Tapestry.Node do
     lvl=Tapestry.Node.Helper.next_hop(nbors, dest_hash)
     if elem(Enum.at(lvl, 0), 1)==self() do
       if self() != src_pid do
-        send(src_pid, {:route_n_r, acc_pid, hops})
+        if Process.alive?(src_pid)==true do
+          send(src_pid, {:route_n_r, acc_pid, hops})
+        end
       else
         IO.puts "I tried reaching myself, took #{hops} hops!"
       end

@@ -14,7 +14,7 @@ defmodule Tapestry.Node.Helper do
     Enum.map(
       lvl,
       fn({_hash, pid})->
-        if is_nil(pid)==false, do: send(pid, msg)
+        if is_nil(pid)==false and Process.alive?(pid)==true, do: send(pid, msg)
       end
     )
   end
@@ -84,7 +84,9 @@ defmodule Tapestry.Node.Helper do
     end
     #send warm welcome if not self
     if node_pid != self() do
-      send(node_pid, {:welcome, elem(Enum.at(hd(nbors), 0), 0), self()})
+      if Process.alive?(node_pid)==true do
+        send(node_pid, {:welcome, elem(Enum.at(hd(nbors), 0), 0), self()})
+      end
     end
     new_nbors
   end
@@ -155,7 +157,9 @@ defmodule Tapestry.Node.Helper do
         #display found obj and dont send a msg as it will cause a deadlock
         IO.puts "[#{elem(Enum.at(hd(nbors), 0), 0)}] Found mapping within myself! Object is: #{Enum.at(ret, 1)}"
       else
-        send(rqstr_pid, {:route_o_r, msg_hash, ret, hops})
+        if Process.alive?(rqstr_pid)==true do
+          send(rqstr_pid, {:route_o_r, msg_hash, ret, hops})
+        end
       end
     end
   end
