@@ -59,9 +59,9 @@ defmodule Tcoin.Net.Node.Helper do
       [srvr_pid]++state
     ))
     if elem(Enum.at(nbor, 0), 1)==self() do
-      IO.puts "[#{elem(Enum.at(hd(nbors), 0), 0)}] Published #{msg_hash}!"
+      Logger.info("[#{elem(Enum.at(hd(nbors), 0), 0)}] Published #{msg_hash}!")
     else
-      IO.puts "[#{elem(Enum.at(hd(nbors), 0), 0)}] Publishing #{msg_hash}!"
+      Logger.info("[#{elem(Enum.at(hd(nbors), 0), 0)}] Publishing #{msg_hash}!")
       lvl_send(nbor, {:publish, msg_hash, srvr_pid, hops})
     end
   end
@@ -75,7 +75,7 @@ defmodule Tcoin.Net.Node.Helper do
     #unpublish and then publish a revelent object
     update_obj_mapping(nbors, node_hash, agnt_pid)
     if elem(Enum.at(nbor, 0), 1)==self() do
-      IO.puts "[#{elem(Enum.at(hd(nbors), 0), 0)}] Root node found for the newbie!"
+      Logger.info("[#{elem(Enum.at(hd(nbors), 0), 0)}] Root node found for the newbie!")
     else
       #send to surrogate for every 100th hop to circumvent loops
       if rem(hops, 100)!=0 do
@@ -134,7 +134,6 @@ defmodule Tcoin.Net.Node.Helper do
   end
 
   def create_empty_nbor_table(length) do
-    IO.puts "creating"
     for _x<-0..length-1 do
       for _y<-0..length-1, do: {nil, nil}
     end
@@ -147,17 +146,17 @@ defmodule Tcoin.Net.Node.Helper do
     if ret==nil do
       nbor=find_best_match(nbors, msg_hash)
       if elem(Enum.at(nbor, 0), 1)==self() do
-        IO.puts "[#{elem(Enum.at(nbor, 0), 0)}] I seem to be root, object looks unpublished!"
+        Logger.error("[#{elem(Enum.at(nbor, 0), 0)}] I seem to be root, object looks unpublished!")
       else
-        IO.puts "[#{elem(Enum.at(hd(nbors), 0), 0)}] Mapping not found!"
+        Logger.error("[#{elem(Enum.at(hd(nbors), 0), 0)}] Mapping not found!")
         lvl_send(nbor, {:route_o, msg_hash, rqstr_pid, hops})
       end
     else
-      IO.puts "[#{elem(Enum.at(hd(nbors), 0), 0)}] Found mapping!"
+      Logger.info("[#{elem(Enum.at(hd(nbors), 0), 0)}] Found mapping!")
       if Enum.at(ret, 0)==self() do
         #When the requestor is the one having mapping within
         #display found obj and dont send a msg as it will cause a deadlock
-        IO.puts "[#{elem(Enum.at(hd(nbors), 0), 0)}] Found mapping within myself! Object is: #{Enum.at(ret, 1)}"
+        Logger.info("[#{elem(Enum.at(hd(nbors), 0), 0)}] Found mapping within myself! Object is: #{Enum.at(ret, 1)}")
       else
         if Process.alive?(rqstr_pid)==true do
           send(rqstr_pid, {:route_o_r, msg_hash, ret, hops})
@@ -173,7 +172,7 @@ defmodule Tcoin.Net.Node.Helper do
     ret=Agent.get(agnt_pid, &Map.get(&1, msg_hash))
     if ret != nil do
       #delete whatever you have and send to nbor
-      IO.puts "[#{elem(Enum.at(hd(nbors), 0), 0)}] Removing mapping #{msg_hash}!"
+      Logger.info("[#{elem(Enum.at(hd(nbors), 0), 0)}] Removing mapping #{msg_hash}!")
       Agent.update(agnt_pid, &Map.delete(&1, msg_hash))
       nbor=find_best_match(nbors, msg_hash)
       lvl_send(nbor, {:unpublish, msg_hash, hops})

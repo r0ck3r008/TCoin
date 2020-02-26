@@ -1,6 +1,7 @@
 defmodule Tcoin.Net.Node do
 
   use GenServer
+  use Logger
   alias Tcoin.Net.Node.Helper
   alias Tcoin.Net.Dispenser
   alias Tcoin.Net.Dispenser.Hash_Helper
@@ -59,7 +60,6 @@ defmodule Tcoin.Net.Node do
   @impl true
   def handle_cast({:update_nbors, nbors}, {hash, agnt_pid}) do
     nbors=[[{hash, self()}]]++nbors
-    #    IO.inspect nbors
     {:noreply, {nbors, agnt_pid}}
   end
 
@@ -122,9 +122,9 @@ defmodule Tcoin.Net.Node do
   def handle_info({:route_o_r, msg_hash, ret, hops}, state) do
     obj=fetch_object(Enum.at(ret, 0), msg_hash)
     if obj != nil do
-      IO.puts "Found object #{msg_hash}: #{inspect obj} in #{hops} hops!"
+      Logger.debug("Found object #{msg_hash}: #{inspect obj} in #{hops} hops!")
     else
-      IO.puts "Found old mapping for the object that no longer exists!"
+      Logger.debug("Found old mapping for the object that no longer exists!")
     end
     {:noreply, state}
   end
@@ -180,7 +180,7 @@ defmodule Tcoin.Net.Node do
           send(src_pid, {:route_n_r, acc_pid, hops})
         end
       else
-        IO.puts "I tried reaching myself, took #{hops} hops!"
+        Logger.warn("I tried reaching myself, took #{hops} hops!")
       end
     else
       Helper.lvl_send(lvl,
