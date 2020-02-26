@@ -1,5 +1,6 @@
 defmodule Tcoin.Net.Node.Helper do
 
+  require Logger
   alias Tcoin.Net.Dispenser
 
   ##########Helper functions##########
