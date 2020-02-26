@@ -1,4 +1,4 @@
-defmodule Tapestry.Dispenser do
+defmodule Tcoin.Net.Dispenser do
 
   use GenServer
 
