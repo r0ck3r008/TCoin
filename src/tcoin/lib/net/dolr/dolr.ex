@@ -1,4 +1,6 @@
-defmodule Tapestry.Dolr do
+defmodule Tcoin.Net.Dolr do
+
+  alias Tcoin.Net.Node.Helper
 
   #NOTE
   #The basic algorithm for publish is:
@@ -8,7 +10,7 @@ defmodule Tapestry.Dolr do
   #4. The intermidiatory nodes when receive this message, add this mapping and pass along to nbor
   #   if already added pass to surrogate
   def publish(msg, srvr_pid) do
-    msg_hash=Tapestry.Node.Helper.hash_it(msg)
+    msg_hash=Helper.hash_it(msg)
     GenServer.cast(srvr_pid, {:store, msg_hash, msg})
     send(srvr_pid, {:publish, msg_hash, srvr_pid, 0})
   end
@@ -20,7 +22,7 @@ defmodule Tapestry.Dolr do
   #3. For each intermidiatary node, check if it has mapping, if yes then delete else pass its surrogate
   #   else pass to its next nbor
   def unpublish(msg, srvr_pid) do
-    msg_hash=Tapestry.Node.Helper.hash_it(msg)
+    msg_hash=Helper.hash_it(msg)
     send(srvr_pid, {:unpublish, msg_hash, 0})
   end
 
@@ -33,7 +35,7 @@ defmodule Tapestry.Dolr do
   #4. The root node or the intermidiatary node with object's published mapping sends its server's pid to requestor
   #   and the requestor can now fetch
   def route_to_obj(msg, rqstr_pid) do
-    msg_hash=Tapestry.Node.Helper.hash_it(msg)
+    msg_hash=Helper.hash_it(msg)
     send(rqstr_pid, {:route_o, msg_hash, rqstr_pid, 0})
   end
 
@@ -45,7 +47,7 @@ defmodule Tapestry.Dolr do
   #   and calculating the match level. Then the same route_n msg is sent to next node
   #   untill either the dest node receives it, or hops are exhausted
   def route_to_node(src_pid, dest_pid, acc_pid) do
-    dest_hash=Tapestry.Node.Helper.hash_it(inspect dest_pid)
+    dest_hash=Helper.hash_it(inspect dest_pid)
     send(src_pid, {:route_n, dest_hash, src_pid, acc_pid, 0})
   end
 
