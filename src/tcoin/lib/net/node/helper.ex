@@ -1,4 +1,6 @@
-defmodule Tapestry.Node.Helper do
+defmodule Tcoin.Net.Node.Helper do
+
+  alias Tcoin.Net.Dispenser
 
   ##########Helper functions##########
   def hash_it(msg) do
@@ -8,7 +10,7 @@ defmodule Tapestry.Node.Helper do
   end
 
   def remove_deadlocks(_num, _disp_pid, 0), do: :ok
-  def remove_deadlocks(num, disp_pid, _dlta), do: remove_deadlocks(num, disp_pid, num-Tapestry.Dispenser.fetch_assigned(disp_pid))
+  def remove_deadlocks(num, disp_pid, _dlta), do: remove_deadlocks(num, disp_pid, num-Dispenser.fetch_assigned(disp_pid))
 
   def lvl_send(lvl, msg) do
     Enum.map(

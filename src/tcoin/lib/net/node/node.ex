@@ -1,6 +1,9 @@
-defmodule Tapestry.Node do
+defmodule Tcoin.Net.Node do
 
   use GenServer
+  alias Tcoin.Net.Node.Helper
+  alias Tcoin.Net.Dispenser
+  alias Tcoin.Net.Dispenser.Hash_Helper
 
   def start_link do
     {:ok, agnt_pid}=Agent.start_link(fn-> %{} end)
@@ -8,13 +11,13 @@ defmodule Tapestry.Node do
   end
 
   def update_route(of, num, disp_pid) do
-    hash=Tapestry.Node.Helper.hash_it(inspect of)
+    hash=Helper.hash_it(inspect of)
     GenServer.cast(of, {:assign_hash, hash, disp_pid})
 
     #remove deadlocks
-    Tapestry.Node.Helper.remove_deadlocks(num, disp_pid, num-Tapestry.Dispenser.fetch_assigned(disp_pid))
+    Helper.remove_deadlocks(num, disp_pid, num-Dispenser.fetch_assigned(disp_pid))
 
-    nbor_t=Task.async(fn-> Tapestry.Dispenser.Hash_helper.get_nbors(disp_pid, hash) end)
+    nbor_t=Task.async(fn-> Hash_helper.get_nbors(disp_pid, hash) end)
     GenServer.cast(of,
       {
         :update_nbors,
@@ -42,7 +45,7 @@ defmodule Tapestry.Node do
   def handle_cast({:assign_hash, hash, disp_pid}, agnt_pid) do
     {:noreply,
       {
-        Tapestry.Dispenser.assign_hash(disp_pid, self(), hash),
+        Dispenser.assign_hash(disp_pid, self(), hash),
         agnt_pid
       }
     }
@@ -94,10 +97,11 @@ defmodule Tapestry.Node do
   def handle_info({:publish, msg_hash, srvr_pid, hops}, {nbors, agnt_pid}) do
     ret=Agent.get(agnt_pid, &Map.get(&1, msg_hash))
     if ret==nil or is_pid(Enum.at(ret, 0))==false do
-      Tapestry.Node.Helper.publish(nbors, agnt_pid, msg_hash, srvr_pid, hops+1)
+      Helper.publish(nbors, agnt_pid, msg_hash, srvr_pid, hops+1)
     else
       #send to surrogate if a loop is detected
-      Tapestry.Node.Helper.lvl_send(Enum.at(nbors, 1), {:publish, msg_hash, srvr_pid, hops+1})
+      Helper.lvl_send(Enum.at(nbors, 1),
+        {:publish, msg_hash, srvr_pid, hops+1})
     end
     {:noreply, {nbors, agnt_pid}}
   end
@@ -110,7 +114,7 @@ defmodule Tapestry.Node do
   end
   @impl true
   def handle_info({:route_o, msg_hash, rqstr_pid, hops}, state) do
-    Tapestry.Node.Helper.route_to_obj(msg_hash, hops+1, rqstr_pid, state)
+    Helper.route_to_obj(msg_hash, hops+1, rqstr_pid, state)
     {:noreply, state}
   end
 
@@ -134,7 +138,7 @@ defmodule Tapestry.Node do
 
   @impl true
   def handle_info({:unpublish, msg_hash, hops}, state) do
-    Tapestry.Node.Helper.unpublish(msg_hash, hops+1, state)
+    Helper.unpublish(msg_hash, hops+1, state)
     {:noreply, state}
   end
   ###########Unpublish related##########
@@ -147,14 +151,15 @@ defmodule Tapestry.Node do
 
   @impl true
   def handle_info({:add_n, node_hash, node_pid, hops}, {nbors, agnt_pid}) do
-    new_nbors=Tapestry.Node.Helper.add_node(node_hash, node_pid, hops+1, {nbors, agnt_pid})
+    new_nbors=Helper.add_node(node_hash, node_pid,
+                                hops+1, {nbors, agnt_pid})
     new_nbors=if new_nbors==nil, do: nbors, else: new_nbors
     {:noreply, {new_nbors, agnt_pid}}
   end
 
   @impl true
   def handle_info({:welcome, sndr_hash, sndr_pid}, {nbors, agnt_pid}) do
-    new_nbors=Tapestry.Node.Helper.handle_welcome(sndr_hash, sndr_pid, nbors)
+    new_nbors=Helper.handle_welcome(sndr_hash, sndr_pid, nbors)
     new_nbors=if new_nbors==nil, do: nbors, else: new_nbors
     {:noreply, {new_nbors, agnt_pid}}
   end
@@ -168,7 +173,7 @@ defmodule Tapestry.Node do
 
   @impl true
   def handle_info({:route_n, dest_hash, src_pid, acc_pid, hops}, {nbors, agnt_pid}) do
-    lvl=Tapestry.Node.Helper.next_hop(nbors, dest_hash)
+    lvl=Helper.next_hop(nbors, dest_hash)
     if elem(Enum.at(lvl, 0), 1)==self() do
       if self() != src_pid do
         if Process.alive?(src_pid)==true do
@@ -178,7 +183,8 @@ defmodule Tapestry.Node do
         IO.puts "I tried reaching myself, took #{hops} hops!"
       end
     else
-      Tapestry.Node.Helper.lvl_send(lvl, {:route_n, dest_hash, src_pid, acc_pid, hops+1})
+      Helper.lvl_send(lvl,
+          {:route_n, dest_hash, src_pid, acc_pid, hops+1})
     end
     {:noreply, {nbors, agnt_pid}}
   end
