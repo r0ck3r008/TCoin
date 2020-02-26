@@ -1,4 +1,4 @@
-defmodule Tcoin.Net.Dispenser.Hash_helper do
+defmodule Tcoin.Net.Dispenser.Hash_Helper do
 
   def get_nbors(disp_pid, hash) do
     map=GenServer.call(disp_pid, :get_map)
