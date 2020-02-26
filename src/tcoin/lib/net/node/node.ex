@@ -1,7 +1,7 @@
 defmodule Tcoin.Net.Node do
 
   use GenServer
-  use Logger
+  require Logger
   alias Tcoin.Net.Node.Helper
   alias Tcoin.Net.Dispenser
   alias Tcoin.Net.Dispenser.Hash_Helper
@@ -18,7 +18,7 @@ defmodule Tcoin.Net.Node do
     #remove deadlocks
     Helper.remove_deadlocks(num, disp_pid, num-Dispenser.fetch_assigned(disp_pid))
 
-    nbor_t=Task.async(fn-> Hash_helper.get_nbors(disp_pid, hash) end)
+    nbor_t=Task.async(fn-> Hash_Helper.get_nbors(disp_pid, hash) end)
     GenServer.cast(of,
       {
         :update_nbors,
