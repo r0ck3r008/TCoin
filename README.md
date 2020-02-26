@@ -1,4 +1,4 @@
-#TCoin: A DHT based Proof of Stake Cryptocurrency
+# TCoin: A DHT based Proof of Stake Cryptocurrency
 
 #### Introduction
 This is an implementation of the work done by Zaho et. al.[1] in creating a novel way to leverage Distributed Hash Tables. Tapestry provides a reliable way to communicate and share resources accross a P2P network. This project aims to implement that using Elixir as choice of programming language.
