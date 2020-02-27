@@ -1,1 +1,4 @@
-src/try*
+doc/latex/*.log
+doc/latex/*.aux
+doc/latex/*.pdf
+doc/latex/*.gz
