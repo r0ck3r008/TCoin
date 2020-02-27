@@ -1,1 +1,6 @@
-src/try*
+docs/latex/*.log
+docs/latex/*.aux
+docs/latex/*.pdf
+docs/latex/*.gz
+docs/latex/*.bbl
+docs/latex/*.blg
