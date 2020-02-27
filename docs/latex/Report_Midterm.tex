@@ -69,7 +69,7 @@ Distributed Hash Tables \cite{dht} provide a intuitive and fault tolerant path t
 
 	Since each node is associated to a unique hash, it can be mapped to its root node, again anonymous, using Tapestry's Route to Object algorithm. This root node would house just the latest transaction hash of the former node. In the event that a validator approaches this node for validation, it will provide the latest transaction hash. This would mean that each transaction hash is stored in two nodes, if at all available, first with the root node of the payee and second with the root node of the receiver. This leads to a very slight chance that the transaction can be counterfeit, as it is a testimony of two totally unconnected nodes. Note that, the real transaction contract is never stored anywhere but the node which received the money. The validator just gets that transaction contract's copy and reaches the root node to validate its hash and moves on to validate the same from the other root node. This is a vital process as a root node for one node can indeed become payee in a future transaction. Thus, it must be totally unaware of the origin of the transaction hashes it houses.
 
-	\begin{figure}
+	\begin{figure}[h]
 	  \includegraphics[width=\linewidth]{transaction_algo.jpg}
 	  \caption{Transaction Algorithm Architecture}
 	  \label{Transaction Architecture}
@@ -77,7 +77,7 @@ Distributed Hash Tables \cite{dht} provide a intuitive and fault tolerant path t
 
 	\subsection{Validator Selection Algorithm}
 
-	\begin{figure}
+	\begin{figure}[h]
 	  \includegraphics[width=\linewidth]{validation_algo.jpg}
 	  \caption{Validation Algorithm Architecture}
 	  \label{Validation Architecture}
@@ -144,6 +144,37 @@ Distributed Hash Tables \cite{dht} provide a intuitive and fault tolerant path t
 
 
 \section{observations}
+Now we describe our findings from the tests we ran on the completed Networking subsystem. The testing machine is equipped with Intel i7-8750H Hexcore, 12 Thread Mobile Laptop Processor with 16GB DDR4 memory .
+
+	\subsection{Methodology}
+	The experiment was run with two topologies, with 1000 and 2000 nodes each,
+failing 5\%, 10\%, 15\% and 20\% of nodes totalling to 8 experimental runs. Each run
+has been tested 5 times to provide consistency in output. All these functions are the
+part of DOLR API.
+
+	\subsection{Results}
+	In our successive attempts to render the topology unusable, we have failed and thus
+established its high degree of resilience.
+
+The results are tabulated as following:
+
+	\begin{figure}[h]
+	  \includegraphics[width=\linewidth]{../observations/test_1000_nodes.png}
+	  \caption{Table with results of 1000 nodes}
+	  \label{Test 1}
+	\end{figure}
+	
+	\begin{figure}[h]
+	  \includegraphics[width=\linewidth]{../observations/test_2000_nodes.png}
+	  \caption{Table with results of 1000 nodes}
+	  \label{Test 2}
+	\end{figure}
+
+F1 represents the route to object function call before un-publish and F2 represents the contrast.
+
+Note that, the tables tabulate the Hops required to fetch the object. Also,
+value of “N” shows that the object was never found. An uncertain value is
+represented as ``\_/\_'' which shows the integral bounds of uncertainty.
 
 \section{Further Steps}
 The present work is just the beginning and TCoin can use a lot of further research attention. Some of the steps, that we acknowledge, that require such an attention are:
