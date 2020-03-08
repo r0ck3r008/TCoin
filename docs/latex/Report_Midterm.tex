@@ -56,7 +56,12 @@ Distributed Hash Tables \cite{dht} provide a intuitive and fault tolerant path t
 	\end{itemize}
 	
 \subsection{\textit{Proof of Stake concensus algorithm}}
-\textit{\textbf{Add Proof of stake algorithm here with 2-3 references}}
+% \textit{\textit{Add Proof of stake algorithm here with 2-3 references}}
+The idea of proof-of-work was first introduced in 1993 \cite{pvp} and was formally coined as proof-of-work in 1997. However, the idea went largely unused until Satoshi Nakamoto used this technique to create Bitcoin \cite{bitcoin_article}. Most cryptocurrencies like Bitcoin use enormous amount of electricity to secure their networks since mining coins requires a lot of computing power because of proof-of-work algorithm. In 2011 a Bitcointalk forum user called QuantumMechanic proposed a technique that he referred to as proof-of-stake \cite{bitcointalk}. PeerCoin \cite{peercoin} is the first crptocurrency to use proof-of-stake instead of proof-of-work.
+
+The basic idea is that letting everyone compete against each other for mining in proof-of-work is wasteful. Therefore, proof-of-stake uses an election process in which one node is randomly chosen to validate the next block. Proof-of-stake has validators instead of miners and it does not let people mine blocks but instead, mint or forge blocks. Validators aren't chosen completely at random. To become a validator, a node has to deposit a certain amount of coins into the network as stake. The size of the stake determines the chances of a validator to be chosen to forge the next block. If a node is chosen to validate/forge the next block, it will check if all the transactions within it are valid. Upon successful validation, the validator node adds block to the blockchain. As a reward, the node receives the fees that are associated with each transaction. Validators lose a part of their stake if they approve fraudulent transactions. As long as validator's stake is higher than the reward, it can be trusted. This idea is a financial motivator and holds up as long as the stake is higher than the sum of all transaction fees. If a node stops being a validator, it's stake plus all the transaction fees that it received will not be released immediately, but after a certain period of time since the network needs time to check for fraudulent blocks in the blockchain, and punish the validator if it added those fraudulent blocks.
+
+Proof-of-stake doesn't let everyone mine the blocks and therefore uses considerably less energy. Proof-of-stake is more decentralized than proof-of-work since there are no mining pools. Setting up a node for proof-of-stake based blockchain is a considerably less expensive compared to proof-of-work based blockchain.
 
 \section{Architecture}
 	\subsection{Transaction Algorithm}
@@ -117,7 +122,6 @@ Distributed Hash Tables \cite{dht} provide a intuitive and fault tolerant path t
 	\item{The Main Driver Module: }
 	This basically is the module that merges the last two into a full currency. Can be thought of a the wallet implementation.
 	\end{itemize}
-	The repository containing all the code of TCoin implementation is available both on GitLab\cite{gitlab} and GitHub\cite{github}.
 	
 	\subsection{Networking Submodule}
 	The Networking subsystem consists of three main modules, \textit{viz.}
@@ -166,7 +170,7 @@ The results are tabulated as following:
 	
 	\begin{figure}[h]
 	  \includegraphics[width=\linewidth]{../observations/test_2000_nodes.png}
-	  \caption{Table with results of 1000 nodes}
+	  \caption{Table with results of 2000 nodes}
 	  \label{Test 2}
 	\end{figure}
 
