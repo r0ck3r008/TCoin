@@ -10,11 +10,11 @@ defmodule Tcoin.Net.Node.Route do
     end
   end
 
-  def broadcast(new_node, nbors) do
+  def broadcast(msg, nbors) do
     for {_, nbors} <- nbors do
       for {_, nbor_pid} <- nbors do
         if Process.alive?(nbor_pid) do
-          send(nbor_pid, {:new_node, new_node})
+          send(nbor_pid, msg)
         end
       end
     end
