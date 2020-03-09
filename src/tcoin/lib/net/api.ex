@@ -1,6 +1,7 @@
 defmodule Tcoin.Net.Api do
 
   require Logger
+  alias Tcoin.Net.Node
   alias Tcoin.Net.Node.Public
 
   #returns the PID of the genserver
@@ -15,7 +16,7 @@ defmodule Tcoin.Net.Api do
 
   #publish receives the publisher's pid as well as the object
   def publish(publisher, obj) do
-
+    Public.publish(publisher, obj)
   end
 
   #unpublish receives the unpublish requesting node's pid as well as object

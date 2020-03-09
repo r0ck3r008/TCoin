@@ -1,6 +1,7 @@
 defmodule Tcoin.Net.Node.Utils do
 
   require Logger
+  alias Tcoin.Net.Node.Route
 
   def hash_it(input) do
     :crypto.hash(:sha, input)
@@ -44,6 +45,31 @@ defmodule Tcoin.Net.Node.Utils do
         )
       _->
         nil
+    end
+  end
+
+
+  def inventory(store_agnt, {obj_hash, payload}) do
+    state=Agent.get(store_agnt, fn(state)->state end)
+    if {obj_hash, payload} in state do
+      nil
+    else
+      Agent.update(store_agnt, &(&1 ++ [{obj_hash, payload}]))
+    end
+  end
+
+  def publish({_state_agnt, store_agnt, _hash}, {obj_hash, payload}, 5) do
+    inventory(store_agnt, {obj_hash, payload})
+  end
+  def publish({state_agnt, store_agnt, hash}, {obj_hash, payload}, hops) do
+    inventory(store_agnt, {obj_hash, payload})
+    lvl=match_lvl(hash, obj_hash, 0)
+    nbors=Agent.get(state_agnt, &Map.get(&1, String.to_atom("lvl#{lvl}")))
+    case payload do
+      {obj_hash, payload}->
+        Route.send_to_lvl({obj_hash, payload}, nbors, hops)
+      _->
+        Route.send_to_lvl({obj_hash, {hash, self()}}, nbors, hops)
     end
   end
 
