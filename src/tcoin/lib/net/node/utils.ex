@@ -48,21 +48,38 @@ defmodule Tcoin.Net.Node.Utils do
     end
   end
 
-
-  def inventory(store_agnt, {obj_hash, payload}) do
+  def inventory_chk(store_agnt, obj_hash) do
     state=Agent.get(store_agnt, fn(state)->state end)
-    if {obj_hash, payload} in state do
-      nil
-    else
-      Agent.update(store_agnt, &(&1 ++ [{obj_hash, payload}]))
+    for {hash, payload}<-state, hash == obj_hash, do: {hash, payload}
+    |> Enum.uniq()
+  end
+
+  def inventory_add(store_agnt, {obj_hash, payload}) do
+    ret=inventory_chk(store_agnt, obj_hash)
+    case ret do
+      _->
+        nil
+      [nil]->
+        Agent.update(store_agnt, &(&1 ++ [{obj_hash, payload}]))
+    end
+  end
+
+  def inventory_remove(store_agnt, {obj_hash, payload}) do
+    ret=inventory_chk(store_agnt, obj_hash)
+    case ret do
+      _->
+        Agent.update(store_agnt, &(&1 -- [{obj_hash, payload}]))
+        true
+      [nil]->
+        false
     end
   end
 
   def publish({_state_agnt, store_agnt, _hash}, {obj_hash, payload}, 5) do
-    inventory(store_agnt, {obj_hash, payload})
+    inventory_add(store_agnt, {obj_hash, payload})
   end
   def publish({state_agnt, store_agnt, hash}, {obj_hash, payload}, hops) do
-    inventory(store_agnt, {obj_hash, payload})
+    inventory_add(store_agnt, {obj_hash, payload})
     lvl=match_lvl(hash, obj_hash, 0)
     nbors=Agent.get(state_agnt, &Map.get(&1, String.to_atom("lvl#{lvl}")))
     case payload do
@@ -70,6 +87,16 @@ defmodule Tcoin.Net.Node.Utils do
         Route.send_to_lvl({obj_hash, payload}, nbors, hops)
       _->
         Route.send_to_lvl({obj_hash, {hash, self()}}, nbors, hops)
+    end
+  end
+
+  def unpublish({state_agnt, store_agnt, _hash}, obj_hash) do
+    ret=inventory_remove(store_agnt, obj_hash)
+    case ret do
+      true->
+        Route.broadcast({:unpublish, obj_hash}, Agent.get(state_agnt, fn(state)->state end))
+      false->
+        nil
     end
   end
 
