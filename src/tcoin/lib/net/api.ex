@@ -20,8 +20,8 @@ defmodule Tcoin.Net.Api do
   end
 
   #unpublish receives the unpublish requesting node's pid as well as object
-  def unpublish(requester, obj) do
-
+  def unpublish(requester, obj_hash) do
+    Public.unpublish(requester, obj_hash)
   end
 
 end
