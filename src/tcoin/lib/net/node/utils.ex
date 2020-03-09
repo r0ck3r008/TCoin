@@ -4,7 +4,9 @@ defmodule Tcoin.Net.Node.Utils do
   alias Tcoin.Net.Node.Route
 
   def hash_it(input) do
-    :crypto.hash(:sha, input)
+    input
+    |> Salty.Hash.Sha256.hash
+    |> elem(1)
     |> Base.encode16()
     |> String.slice(0, 8)
   end
