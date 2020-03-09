@@ -12,4 +12,8 @@ defmodule Tcoin.Net.Node.Public do
     GenServer.cast(publisher, {:publish, obj, obj_hash})
   end
 
+  def unpublish(requester, obj_hash) do
+    GenServer.cast(requester, {:unpublish, obj_hash})
+  end
+
 end

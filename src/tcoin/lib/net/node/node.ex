@@ -31,7 +31,7 @@ defmodule Tcoin.Net.Node do
   @impl true
   def handle_cast({:add_node, new_node}, {state_agnt, store_agnt, hash}) do
     nbors=Agent.get(state_agnt, fn(state)->state end)
-    Route.broadcast(new_node, nbors)
+    Route.broadcast({:new_node, new_node}, nbors)
     {:noreply, {state_agnt, store_agnt, hash}}
   end
 
@@ -49,20 +49,32 @@ defmodule Tcoin.Net.Node do
   end
 
   @impl true
-  def handle_cast({:publish, obj, obj_hash}, {state_agnt, store_agnt, hash}) do
-    Utils.publish({state_agnt, store_agnt, hash}, {obj_hash, obj}, 0)
-    {:noreply, {state_agnt, store_agnt, hash}}
+  def handle_cast({:publish, obj, obj_hash}, state) do
+    Utils.publish(state, {obj_hash, obj}, 0)
+    {:noreply, state}
   end
 
   @impl true
-  def handle_info({:publish, {obj_hash, payload}, 5}, state) do
-    Utils.publish(state, {obj_hash, payload}, 5)
+  def handle_info({:publish, pointer, 5}, state) do
+    Utils.publish(state, pointer, 5)
     {:noreply, state}
   end
 
   @impl true
   def handle_info({:publish, pointer, hops}, state) do
     Utils.publish(state, pointer, hops+1)
+    {:noreply, state}
+  end
+
+  @impl true
+  def handle_cast({:unpublish, obj_hash}, state) do
+    Utils.unpublish(state, obj_hash)
+    {:noreply, state}
+  end
+
+  @impl true
+  def handle_info({:unpublish, obj_hash}, state) do
+    Utils.unpublish(state, obj_hash)
     {:noreply, state}
   end
 
