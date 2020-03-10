@@ -12,16 +12,20 @@ defmodule Tcoin.Net.Node.Utils do
     |> String.slice(0, 8)
   end
 
-  def match_lvl(hash1, hash2, count)
-              when hash1 == hash2, do: match_lvl(
-                                                  String.slice(hash1, 0, count+2),
-                                                  String.slice(hash2, 0, count+2),
-                                                  count+1
-                                                  )
-  def match_lvl(hash1, hash2, count)
-              when hash1 != hash2, do: count
-  def match_lvl(hash1, hash2, 0) do
+  def match_lvl(hash1, hash2, p1, p2, count)
+  when p1 == p2, do: match_lvl(
+    hash1,
+    hash2,
+    String.slice(hash1, 0, count+2),
+    String.slice(hash2, 0, count+2),
+    count+1
+    )
+  def match_lvl(_hash1, _hash2, p1, p2, count)
+  when p1 != p2, do: count
+  def match_lvl(hash1, hash2) do
     match_lvl(
+      hash1,
+      hash2,
       String.slice(hash1, 0, 1),
       String.slice(hash2, 0, 1),
       0
@@ -32,7 +36,7 @@ defmodule Tcoin.Net.Node.Utils do
   #Add a time stamp on the nbors so that stale nbors can be replaced
   def update_nbors({state_agnt, hash}, node) do
     node_hash=hash_it(inspect node)
-    lvl=match_lvl(hash, node_hash, 0)
+    lvl=match_lvl(hash, node_hash)
     nbors=Agent.get(state_agnt, &Map.get(&1, String.to_atom("lvl#{lvl}")))
     len=length(nbors)
     case len do
@@ -91,7 +95,7 @@ defmodule Tcoin.Net.Node.Utils do
   end
   def publish({state_agnt, store_agnt, hash}, {obj_hash, payload}, hops) do
     inventory_add(store_agnt, {obj_hash, payload})
-    lvl=match_lvl(hash, obj_hash, 0)
+    lvl=match_lvl(hash, obj_hash)
     nbors=Agent.get(state_agnt, &Map.get(&1, String.to_atom("lvl#{lvl}")))
     case hops do
       0->
@@ -131,7 +135,7 @@ defmodule Tcoin.Net.Node.Utils do
   end
 
   def pass_along({state_agnt, hash}, {obj_hash, requester, hops}) do
-    lvl=match_lvl(hash, obj_hash, 0)
+    lvl=match_lvl(hash, obj_hash)
     nbors=Agent.get(state_agnt, &Map.get(&1, String.to_atom("lvl#{lvl}")))
     Route.send_to_lvl({:route, {obj_hash, requester, hops}}, nbors)
   end
