@@ -22,6 +22,7 @@ defmodule Tcoin.Net.Node.Utils do
     )
   def match_lvl(_hash1, _hash2, p1, p2, count)
   when p1 != p2, do: count
+  def match_lvl(hash1, hash2) when hash1 == hash2, do: String.length(hash1)
   def match_lvl(hash1, hash2) do
     match_lvl(
       hash1,
