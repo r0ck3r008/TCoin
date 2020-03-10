@@ -2,6 +2,7 @@ defmodule Tcoin.Net.Node.Utils do
 
   require Logger
   alias Tcoin.Net.Node.Route
+  alias Tcoin.Net.Node.Public
 
   def hash_it(input) do
     input
@@ -59,22 +60,30 @@ defmodule Tcoin.Net.Node.Utils do
   def inventory_add(store_agnt, {obj_hash, payload}) do
     ret=inventory_chk(store_agnt, obj_hash)
     case ret do
-      _->
-        nil
       [nil]->
         Agent.update(store_agnt, &(&1 ++ [{obj_hash, payload}]))
+          _->
+        nil
     end
   end
 
   def inventory_remove(store_agnt, {obj_hash, payload}) do
     ret=inventory_chk(store_agnt, obj_hash)
     case ret do
-      _->
-        Agent.update(store_agnt, &(&1 -- [{obj_hash, payload}]))
-        true
       [nil]->
         false
+          _->
+        Agent.update(store_agnt, &(&1 -- [{obj_hash, payload}]))
+        true
     end
+  end
+
+  def inventory_fetch(store_agnt, obj_hash) do
+    state=Agent.get(store_agnt, fn(state)->state end)
+    ret=for {hash, payload} <- state, hash==obj_hash, do: {hash, payload}
+    |> Enum.uniq()
+    ret -- [nil]
+    |> Enum.at(0)
   end
 
   def publish({_state_agnt, store_agnt, _hash}, {obj_hash, payload}, 5) do
@@ -84,11 +93,11 @@ defmodule Tcoin.Net.Node.Utils do
     inventory_add(store_agnt, {obj_hash, payload})
     lvl=match_lvl(hash, obj_hash, 0)
     nbors=Agent.get(state_agnt, &Map.get(&1, String.to_atom("lvl#{lvl}")))
-    case payload do
-      {obj_hash, payload}->
-        Route.send_to_lvl({obj_hash, payload}, nbors, hops)
+    case hops do
+      0->
+        Route.send_to_lvl({:publish, {obj_hash, {hash, self()}}, hops}, nbors)
       _->
-        Route.send_to_lvl({obj_hash, {hash, self()}}, nbors, hops)
+        Route.send_to_lvl({:publish, {obj_hash, payload}, hops}, nbors)
     end
   end
 
@@ -99,6 +108,45 @@ defmodule Tcoin.Net.Node.Utils do
         Route.broadcast({:unpublish, obj_hash}, Agent.get(state_agnt, fn(state)->state end))
       false->
         nil
+    end
+  end
+
+  def route_to_obj({_state_agnt, store_agnt, _hash}, {obj_hash, requester, 5}) do
+    ret=inventory_chk(store_agnt, obj_hash)
+    case ret do
+      [nil]->
+        nil
+      _->
+        reach_out(requester, ret)
+    end
+  end
+  def route_to_obj({state_agnt, store_agnt, hash}, {obj_hash, requester, hops}) do
+    ret=inventory_chk(store_agnt, obj_hash)
+    case ret do
+      [nil]->
+        pass_along({state_agnt, hash}, {obj_hash, requester, hops})
+      _->
+        reach_out(requester, ret)
+    end
+  end
+
+  def pass_along({state_agnt, hash}, {obj_hash, requester, hops}) do
+    lvl=match_lvl(hash, obj_hash, 0)
+    nbors=Agent.get(state_agnt, &Map.get(&1, String.to_atom("lvl#{lvl}")))
+    Route.send_to_lvl({:route, {obj_hash, requester, hops}}, nbors)
+  end
+
+  def reach_out(requester, ret) do
+    send(requester, {:found, Enum.at(ret, 0)})
+  end
+
+  def fetch({obj_hash, payload}) do
+    ret=is_tuple(payload)
+    case ret do
+      true->
+        Public.fetch_obj(elem(payload, 1), obj_hash)
+      false->
+        payload
     end
   end
 

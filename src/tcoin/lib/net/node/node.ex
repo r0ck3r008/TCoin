@@ -78,4 +78,30 @@ defmodule Tcoin.Net.Node do
     {:noreply, state}
   end
 
+  @impl true
+  def handle_cast({:route, obj_hash}, state) do
+    Utils.route_to_obj(state, {obj_hash, self(), 0})
+    {:noreply, state}
+  end
+
+  @impl true
+  def handle_info({:route, {obj_hash, requestor, hops}}, state) do
+    Utils.route_to_obj(state, {obj_hash, requestor, hops+1})
+    {:noreply, state}
+  end
+
+  @impl true
+  def handle_info({:found, pointer}, state) do
+    Utils.fetch(pointer)
+    {:noreply, state}
+  end
+
+  @impl true
+  def handle_call({:fetch, obj_hash}, _from, {state_agnt, store_agnt, hash}) do
+    {
+      :reply,
+      Utils.inventory_fetch(store_agnt, obj_hash),
+      {state_agnt, store_agnt, hash}
+    }
+  end
 end
