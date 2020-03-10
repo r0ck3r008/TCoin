@@ -16,4 +16,12 @@ defmodule Tcoin.Net.Node.Public do
     GenServer.cast(requester, {:unpublish, obj_hash})
   end
 
+  def route_to_obj(requester, obj_hash) do
+    GenServer.cast(requester, {:route, obj_hash})
+  end
+
+  def fetch_obj(requester, obj_hash) do
+    GenServer.call(requester, {:fetch, obj_hash})
+  end
+
 end

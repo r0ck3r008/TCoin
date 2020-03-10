@@ -4,9 +4,9 @@ defmodule Tcoin.Net.Node.Route do
 
   #NOTE
   #Pointer is a tuple with obj_hash as first element and address of publisher as second
-  def send_to_lvl(pointer, nbors, hops) do
+  def send_to_lvl(msg, nbors) do
     for {_, pid}<-nbors do
-      send(pid, {:publish, pointer, hops})
+      send(pid, {msg})
     end
   end
 

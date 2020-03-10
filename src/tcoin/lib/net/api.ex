@@ -24,4 +24,9 @@ defmodule Tcoin.Net.Api do
     Public.unpublish(requester, obj_hash)
   end
 
+  def route_to_obj(requester, obj_hash) do
+    Public.route_to_obj(requester, obj_hash)
+    Public.fetch_obj(requester, obj_hash)
+  end
+
 end
