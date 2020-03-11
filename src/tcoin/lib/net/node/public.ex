@@ -9,6 +9,7 @@ defmodule Tcoin.Net.Node.Public do
 
   def publish(publisher, obj) do
     obj_hash=Utils.hash_it(inspect obj)
+    Logger.debug("Publishing")
     GenServer.cast(publisher, {:publish, obj, obj_hash})
   end
 
