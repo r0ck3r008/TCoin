@@ -50,12 +50,14 @@ defmodule Tcoin.Net.Node do
 
   @impl true
   def handle_cast({:publish, obj, obj_hash}, state) do
+    Logger.debug("Publishing #{inspect obj} with hash #{obj_hash}")
     Utils.publish(state, {obj_hash, obj}, 0)
     {:noreply, state}
   end
 
   @impl true
   def handle_info({:publish, pointer, 5}, state) do
+    Logger.debug("Publish halted for #{inspect pointer}")
     Utils.publish(state, pointer, 5)
     {:noreply, state}
   end
